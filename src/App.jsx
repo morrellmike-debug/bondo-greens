@@ -1,11 +1,26 @@
 import { useState } from 'react';
 import './index.css';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import RegistrationForm from './components/RegistrationForm';
 import CheckInDashboard from './components/CheckInDashboard';
 import AdminPanel from './components/AdminPanel';
+import ComingSoon from './components/ComingSoon';
+import DevAuthModal from './components/DevAuthModal';
+import ProtectedRoute from './components/ProtectedRoute';
 
-export default function App() {
+function AppContent() {
+  const { isDev, isDevAuthenticated, showDevAuth, isAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState('registration');
+
+  // Show ComingSoon if on production (not dev)
+  if (!isDev) {
+    return <ComingSoon />;
+  }
+
+  // Show dev auth modal if not authenticated yet
+  if (!isDevAuthenticated) {
+    return <DevAuthModal />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -26,30 +41,40 @@ export default function App() {
                 >
                   Registration
                 </button>
-                <button
-                  onClick={() => setCurrentPage('checkin')}
-                  className={`px-4 py-2 rounded font-medium transition ${
-                    currentPage === 'checkin'
-                      ? 'bg-green-700 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  Check-In
-                </button>
-                <button
-                  onClick={() => setCurrentPage('admin')}
-                  className={`px-4 py-2 rounded font-medium transition ${
-                    currentPage === 'admin'
-                      ? 'bg-green-700 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  Admin
-                </button>
+
+                {/* Check-In only visible if admin */}
+                {isAdmin && (
+                  <button
+                    onClick={() => setCurrentPage('checkin')}
+                    className={`px-4 py-2 rounded font-medium transition ${
+                      currentPage === 'checkin'
+                        ? 'bg-green-700 text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Check-In
+                  </button>
+                )}
+
+                {/* Admin only visible if admin */}
+                {isAdmin && (
+                  <button
+                    onClick={() => setCurrentPage('admin')}
+                    className={`px-4 py-2 rounded font-medium transition ${
+                      currentPage === 'admin'
+                        ? 'bg-green-700 text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Admin
+                  </button>
+                )}
+
+                {/* Dev badge */}
+                <div className="ml-4 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                  DEV
+                </div>
               </div>
-            </div>
-            <div className="text-sm text-gray-600">
-              Demo Prototype - Feb 4, 2026
             </div>
           </div>
         </div>
@@ -58,9 +83,25 @@ export default function App() {
       {/* Page Content */}
       <main>
         {currentPage === 'registration' && <RegistrationForm />}
-        {currentPage === 'checkin' && <CheckInDashboard />}
-        {currentPage === 'admin' && <AdminPanel />}
+        {currentPage === 'checkin' && (
+          <ProtectedRoute requireAdmin={true}>
+            <CheckInDashboard />
+          </ProtectedRoute>
+        )}
+        {currentPage === 'admin' && (
+          <ProtectedRoute requireAdmin={true}>
+            <AdminPanel />
+          </ProtectedRoute>
+        )}
       </main>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
