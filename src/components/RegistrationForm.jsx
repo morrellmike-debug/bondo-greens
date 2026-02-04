@@ -256,207 +256,209 @@ export default function RegistrationForm() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      {/* Progress Indicator */}
-      <div className="mb-8">
-        <div className="flex justify-between mb-4">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="flex-1 mx-1">
-              <div
-                className={`h-2 rounded ${
-                  i <= step ? 'bg-green-700' : 'bg-gray-300'
-                }`}
-              />
-            </div>
-          ))}
-        </div>
-        <div className="text-sm text-gray-600 text-center">
-          Step {step} of 4
-        </div>
-      </div>
-
-      {/* Step 1: Personal Info */}
-      {step === 1 && (
-        <div className="bg-white rounded-lg shadow p-8">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">
-            Your Information
-          </h2>
-
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name *
-              </label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="John"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name *
-              </label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="Doe"
-              />
-            </div>
+    <div className="w-full min-h-screen bg-gray-50 py-4 px-3 sm:px-4 md:py-8">
+      <div className="max-w-2xl mx-auto">
+        {/* Progress Indicator */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex justify-between mb-3 sm:mb-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="flex-1 mx-0.5 sm:mx-1">
+                <div
+                  className={`h-2 rounded ${
+                    i <= step ? 'bg-green-700' : 'bg-gray-300'
+                  }`}
+                />
+              </div>
+            ))}
           </div>
+          <div className="text-xs sm:text-sm text-gray-600 text-center">
+            Step {step} of 4
+          </div>
+        </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email * <span className="text-xs text-gray-500">(required)</span>
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              className={`w-full border rounded px-3 py-2 ${
-                validationErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="john@example.com"
-            />
+        {/* Step 1: Personal Info */}
+        {step === 1 && (
+          <div className="bg-white rounded-lg shadow p-5 sm:p-8">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">
+              Your Information
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded px-4 py-3 text-base"
+                  placeholder="John"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded px-4 py-3 text-base"
+                  placeholder="Doe"
+                />
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email * <span className="text-xs text-gray-500">(required)</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                className={`w-full border rounded px-4 py-3 text-base ${
+                  validationErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                }`}
+                placeholder="john@example.com"
+              />
             {validationErrors.email && (
               <p className="text-red-500 text-xs mt-1">❌ {validationErrors.email}</p>
             )}
-            {formData.email && validateEmail(formData.email) && !validationErrors.email && (
-              <p className="text-green-500 text-xs mt-1">✓ Valid email</p>
-            )}
-          </div>
+              {formData.email && validateEmail(formData.email) && !validationErrors.email && (
+                <p className="text-green-500 text-xs mt-1">✓ Valid email</p>
+              )}
+            </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone <span className="text-xs text-gray-500">(optional)</span>
-            </label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              className={`w-full border rounded px-3 py-2 ${
-                validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="(555) 123-4567 — exactly 10 digits required"
-            />
-            {validationErrors.phone && (
-              <p className="text-red-500 text-xs mt-1">❌ {validationErrors.phone}</p>
-            )}
-            {formData.phone && validatePhone(formData.phone) && !validationErrors.phone && (
-              <p className="text-green-500 text-xs mt-1">✓ Valid phone</p>
-            )}
-          </div>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone <span className="text-xs text-gray-500">(optional)</span>
+              </label>
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                className={`w-full border rounded px-4 py-3 text-base ${
+                  validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                }`}
+                placeholder="(555) 123-4567"
+              />
+              {validationErrors.phone && (
+                <p className="text-red-500 text-xs mt-1">❌ {validationErrors.phone}</p>
+              )}
+              {formData.phone && validatePhone(formData.phone) && !validationErrors.phone && (
+                <p className="text-green-500 text-xs mt-1">✓ Valid phone</p>
+              )}
+            </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Shirt Size * <span className="text-xs text-gray-500">(Adult sizes)</span>
-            </label>
-            <select
-              name="shirtSize"
-              value={formData.shirtSize}
-              onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            >
-              <option value="">Select size</option>
-              <option value="adult-s">Small</option>
-              <option value="adult-m">Medium</option>
-              <option value="adult-l">Large</option>
-              <option value="adult-xl">X-Large</option>
-              <option value="adult-xxl">2X-Large</option>
-            </select>
-          </div>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Shirt Size * <span className="text-xs text-gray-500">(Adult sizes)</span>
+              </label>
+              <select
+                name="shirtSize"
+                value={formData.shirtSize}
+                onChange={handleInputChange}
+                className="w-full border border-gray-300 rounded px-4 py-3 text-base"
+              >
+                <option value="">Select size</option>
+                <option value="adult-s">Small</option>
+                <option value="adult-m">Medium</option>
+                <option value="adult-l">Large</option>
+                <option value="adult-xl">X-Large</option>
+                <option value="adult-xxl">2X-Large</option>
+              </select>
+            </div>
 
-          <div className="flex justify-between">
-            <button
-              onClick={() => setStep(1)}
-              className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => setStep(2)}
-              disabled={!canProceed()}
-              className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50"
-            >
-              Next
-            </button>
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
+              <button
+                onClick={() => setStep(1)}
+                className="px-6 py-3 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 text-base font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setStep(2)}
+                disabled={!canProceed()}
+                className="px-6 py-3 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50 text-base font-medium"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      
 
       {/* Step 2: Event Selection & Partner Info */}
       {step === 2 && (
-        <div className="bg-white rounded-lg shadow p-8">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        <div className="bg-white rounded-lg shadow p-5 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">
             Event Selection
           </h2>
 
           {!formData.eventType ? (
             <>
-              <p className="text-gray-600 mb-6">Choose which event(s) you'll attend:</p>
+              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Choose which event(s) you'll attend:</p>
 
-              <div className="space-y-3 mb-8">
-            <button
-              onClick={() => handleEventSelect('friday')}
-              className={`w-full p-6 text-left border-2 rounded-lg transition ${
-                formData.eventType === 'friday'
-                  ? 'border-green-700 bg-green-50'
-                  : 'border-gray-300 hover:border-green-700'
-              }`}
-            >
-              <div className="font-semibold text-gray-800">Friday Night Golf</div>
-              <div className="text-sm text-gray-600 mt-1">10-hole individual night golf</div>
-              <div className="text-sm font-medium text-green-700 mt-2">Donation only</div>
-            </button>
+              <div className="space-y-3 mb-6 sm:mb-8">
+              <button
+                onClick={() => handleEventSelect('friday')}
+                className={`w-full p-4 sm:p-6 text-left border-2 rounded-lg transition ${
+                  formData.eventType === 'friday'
+                    ? 'border-green-700 bg-green-50'
+                    : 'border-gray-300 hover:border-green-700'
+                }`}
+              >
+                <div className="font-semibold text-gray-800 text-base">Friday Night Golf</div>
+                <div className="text-xs sm:text-sm text-gray-600 mt-1">10-hole individual night golf</div>
+                <div className="text-xs sm:text-sm font-medium text-green-700 mt-2">Donation only</div>
+              </button>
 
-            <button
-              onClick={() => handleEventSelect('saturday')}
-              className={`w-full p-6 text-left border-2 rounded-lg transition ${
-                formData.eventType === 'saturday'
-                  ? 'border-green-700 bg-green-50'
-                  : 'border-gray-300 hover:border-green-700'
-              }`}
-            >
-              <div className="font-semibold text-gray-800">Saturday Championship</div>
-              <div className="text-sm text-gray-600 mt-1">10-hole 2-man scramble</div>
-              <div className="text-sm font-medium text-green-700 mt-2">$50 per golfer</div>
-            </button>
+              <button
+                onClick={() => handleEventSelect('saturday')}
+                className={`w-full p-4 sm:p-6 text-left border-2 rounded-lg transition ${
+                  formData.eventType === 'saturday'
+                    ? 'border-green-700 bg-green-50'
+                    : 'border-gray-300 hover:border-green-700'
+                }`}
+              >
+                <div className="font-semibold text-gray-800 text-base">Saturday Championship</div>
+                <div className="text-xs sm:text-sm text-gray-600 mt-1">10-hole 2-man scramble</div>
+                <div className="text-xs sm:text-sm font-medium text-green-700 mt-2">$50 per golfer</div>
+              </button>
 
-            <button
-              onClick={() => handleEventSelect('both')}
-              className={`w-full p-6 text-left border-2 rounded-lg transition ${
-                formData.eventType === 'both'
-                  ? 'border-green-700 bg-green-50'
-                  : 'border-gray-300 hover:border-green-700'
-              }`}
-            >
-              <div className="font-semibold text-gray-800">Both Events</div>
-              <div className="text-sm text-gray-600 mt-1">Friday & Saturday Golf</div>
-              <div className="text-sm font-medium text-green-700 mt-2">$50 per golfer</div>
-            </button>
+              <button
+                onClick={() => handleEventSelect('both')}
+                className={`w-full p-4 sm:p-6 text-left border-2 rounded-lg transition ${
+                  formData.eventType === 'both'
+                    ? 'border-green-700 bg-green-50'
+                    : 'border-gray-300 hover:border-green-700'
+                }`}
+              >
+                <div className="font-semibold text-gray-800 text-base">Both Events</div>
+                <div className="text-xs sm:text-sm text-gray-600 mt-1">Friday & Saturday Golf</div>
+                <div className="text-xs sm:text-sm font-medium text-green-700 mt-2">$50 per golfer</div>
+              </button>
 
-            <button
-              onClick={() => handleEventSelect('non-golfer')}
-              className={`w-full p-6 text-left border-2 rounded-lg transition ${
-                formData.eventType === 'non-golfer'
-                  ? 'border-green-700 bg-green-50'
-                  : 'border-gray-300 hover:border-green-700'
-              }`}
-            >
-              <div className="font-semibold text-gray-800">Non-Golfer / Awards Ceremony</div>
-              <div className="text-sm text-gray-600 mt-1">Join us for celebration & awards</div>
-              <div className="text-sm font-medium text-green-700 mt-2">Donation only</div>
-            </button>
+              <button
+                onClick={() => handleEventSelect('non-golfer')}
+                className={`w-full p-4 sm:p-6 text-left border-2 rounded-lg transition ${
+                  formData.eventType === 'non-golfer'
+                    ? 'border-green-700 bg-green-50'
+                    : 'border-gray-300 hover:border-green-700'
+                }`}
+              >
+                <div className="font-semibold text-gray-800 text-base">Non-Golfer / Awards Ceremony</div>
+                <div className="text-xs sm:text-sm text-gray-600 mt-1">Join us for celebration & awards</div>
+                <div className="text-xs sm:text-sm font-medium text-green-700 mt-2">Donation only</div>
+              </button>
           </div>
 
           <div className="flex justify-between">
@@ -479,14 +481,14 @@ export default function RegistrationForm() {
             <>
               {/* Partner Info for Saturday/Both */}
               {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
-                <div className="mb-8 border rounded-lg p-6 bg-blue-50">
-                  <h3 className="font-semibold text-gray-700 mb-4">
+                <div className="mb-6 sm:mb-8 border rounded-lg p-5 sm:p-6 bg-blue-50">
+                  <h3 className="font-semibold text-gray-700 mb-4 text-base">
                     2-Man Scramble Partner Information
                   </h3>
                   
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Partner Name *
                       </label>
                       <input
@@ -494,12 +496,12 @@ export default function RegistrationForm() {
                         name="partnerName"
                         value={formData.partnerName}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        className="w-full border border-gray-300 rounded px-4 py-3 text-base"
                         placeholder="Partner's full name"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Partner Email *
                       </label>
                       <input
@@ -507,15 +509,15 @@ export default function RegistrationForm() {
                         name="partnerEmail"
                         value={formData.partnerEmail}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        className="w-full border border-gray-300 rounded px-4 py-3 text-base"
                         placeholder="partner@example.com"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Partner Phone
                       </label>
                       <input
@@ -523,19 +525,19 @@ export default function RegistrationForm() {
                         name="partnerPhone"
                         value={formData.partnerPhone}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        className="w-full border border-gray-300 rounded px-4 py-3 text-base"
                         placeholder="(555) 123-4567"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Partner Shirt Size <span className="text-xs text-gray-500">(optional)</span>
                       </label>
                       <select
                         name="partnerShirtSize"
                         value={formData.partnerShirtSize}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        className="w-full border border-gray-300 rounded px-4 py-3 text-base"
                       >
                         <option value="">No shirt</option>
                         <option value="adult-s">Small</option>
@@ -550,18 +552,18 @@ export default function RegistrationForm() {
                 </div>
               )}
 
-              <div className="flex justify-between">
+              <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
                 <button
                   onClick={() => {
                     setFormData(prev => ({ ...prev, eventType: '' }));
                   }}
-                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                  className="px-6 py-3 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 text-base font-medium"
                 >
                   Back
                 </button>
                 <button
                   onClick={() => setStep(3)}
-                  className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+                  className="px-6 py-3 bg-green-700 text-white rounded hover:bg-green-800 text-base font-medium"
                 >
                   Next
                 </button>
@@ -573,21 +575,21 @@ export default function RegistrationForm() {
 
       {/* Step 3: Guests & Meals */}
       {step === 3 && (
-        <div className="bg-white rounded-lg shadow p-8">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        <div className="bg-white rounded-lg shadow p-5 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">
             Guests & Meals
           </h2>
 
-          <p className="text-gray-600 mb-6">
+          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
             Add family members (guests). Meals are included for all guests. T-shirts are optional.
           </p>
 
           {/* Guest Owner Toggle */}
-          <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex gap-4">
+          <div className="mb-6 sm:mb-8 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <button
                 onClick={() => setGuestOwner('registrant')}
-                className={`flex-1 py-2 px-4 rounded font-medium transition ${
+                className={`flex-1 py-3 px-3 sm:px-4 rounded font-medium transition text-sm sm:text-base ${
                   guestOwner === 'registrant'
                     ? 'bg-green-700 text-white'
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
@@ -598,7 +600,7 @@ export default function RegistrationForm() {
               {formData.partnerName && (
                 <button
                   onClick={() => setGuestOwner('partner')}
-                  className={`flex-1 py-2 px-4 rounded font-medium transition ${
+                  className={`flex-1 py-3 px-3 sm:px-4 rounded font-medium transition text-sm sm:text-base ${
                     guestOwner === 'partner'
                       ? 'bg-green-700 text-white'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
@@ -614,7 +616,7 @@ export default function RegistrationForm() {
           <div className="mb-6">
             <button
               onClick={handleAddGuest}
-              className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800 text-sm font-medium"
+              className="px-4 py-3 bg-green-700 text-white rounded hover:bg-green-800 text-base font-medium"
             >
               + Add Guest
             </button>
