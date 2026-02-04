@@ -7,16 +7,25 @@ export default function RegistrationForm() {
     lastName: '',
     email: '',
     phone: '',
-    shirtSize: '',
+    eventType: '', // 'friday', 'saturday', or 'both'
     numGuests: 0,
-    events: {
-      thursday18Hole: false,
-      friday9Hole: false,
-      dinner: false,
-    },
     guests: [],
   });
+  const [validationErrors, setValidationErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+
+  // Real-time email validation
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Real-time phone validation (US format)
+  const validatePhone = (phone) => {
+    if (!phone) return true; // Phone is optional
+    const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+    return phoneRegex.test(phone);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -24,22 +33,41 @@ export default function RegistrationForm() {
       ...prev,
       [name]: value,
     }));
+
+    // Real-time validation feedback
+    const errors = { ...validationErrors };
+    if (name === 'email') {
+      if (!value) {
+        delete errors.email;
+      } else if (!validateEmail(value)) {
+        errors.email = 'Please enter a valid email address';
+      } else {
+        delete errors.email;
+      }
+    }
+    if (name === 'phone') {
+      if (!value) {
+        delete errors.phone;
+      } else if (!validatePhone(value)) {
+        errors.phone = 'Please enter a valid phone number';
+      } else {
+        delete errors.phone;
+      }
+    }
+    setValidationErrors(errors);
   };
 
-  const handleEventChange = (eventKey) => {
+  const handleEventSelect = (eventType) => {
     setFormData(prev => ({
       ...prev,
-      events: {
-        ...prev.events,
-        [eventKey]: !prev.events[eventKey],
-      },
+      eventType: eventType,
     }));
   };
 
   const handleAddGuest = () => {
     setFormData(prev => ({
       ...prev,
-      guests: [...prev.guests, { name: '', age: '', shirtSize: '', mealPref: '' }],
+      guests: [...prev.guests, { name: '', age: '', shirtSize: '' }],
     }));
   };
 
@@ -48,6 +76,19 @@ export default function RegistrationForm() {
       ...prev,
       guests: prev.guests.map((g, i) => i === idx ? { ...g, [field]: value } : g),
     }));
+  };
+
+  const handleDeleteGuest = (idx) => {
+    setFormData(prev => ({
+      ...prev,
+      guests: prev.guests.filter((_, i) => i !== idx),
+    }));
+  };
+
+  const canProceed = () => {
+    return formData.firstName && formData.lastName && formData.email && 
+           validateEmail(formData.email) && (!formData.phone || validatePhone(formData.phone)) &&
+           !validationErrors.email && !validationErrors.phone;
   };
 
   const handleSubmit = () => {
@@ -60,11 +101,11 @@ export default function RegistrationForm() {
         lastName: '',
         email: '',
         phone: '',
-        shirtSize: '',
+        eventType: '',
         numGuests: 0,
-        events: { thursday18Hole: false, friday9Hole: false, dinner: false },
         guests: [],
       });
+      setValidationErrors({});
       setSubmitted(false);
     }, 500);
   };
@@ -127,102 +168,46 @@ export default function RegistrationForm() {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
+              Email * <span className="text-xs text-gray-500">(required)</span>
             </label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className={`w-full border rounded px-3 py-2 ${
+                validationErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="john@example.com"
             />
+            {validationErrors.email && (
+              <p className="text-red-500 text-xs mt-1">❌ {validationErrors.email}</p>
+            )}
+            {formData.email && validateEmail(formData.email) && (
+              <p className="text-green-500 text-xs mt-1">✓ Valid email</p>
+            )}
           </div>
 
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone
+              Phone <span className="text-xs text-gray-500">(optional)</span>
             </label>
             <input
               type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className={`w-full border rounded px-3 py-2 ${
+                validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="(555) 123-4567"
             />
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Shirt Size *
-            </label>
-            <select
-              name="shirtSize"
-              value={formData.shirtSize}
-              onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            >
-              <option value="">Select a size</option>
-              <option value="s">Small</option>
-              <option value="m">Medium</option>
-              <option value="l">Large</option>
-              <option value="xl">X-Large</option>
-              <option value="xxl">2X-Large</option>
-            </select>
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              How many guests? *
-            </label>
-            <input
-              type="number"
-              name="numGuests"
-              value={formData.numGuests}
-              onChange={handleInputChange}
-              min="0"
-              max="10"
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            />
-          </div>
-
-          {/* Events */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-700 mb-3">Events *</h3>
-            <label className="flex items-center mb-2">
-              <input
-                type="checkbox"
-                checked={formData.events.thursday18Hole}
-                onChange={() => handleEventChange('thursday18Hole')}
-                className="mr-2 w-4 h-4"
-              />
-              <span className="text-gray-700">
-                Thu 18-Hole Championship ($125) - Feb 11, 8:00 AM
-              </span>
-            </label>
-            <label className="flex items-center mb-2">
-              <input
-                type="checkbox"
-                checked={formData.events.friday9Hole}
-                onChange={() => handleEventChange('friday9Hole')}
-                className="mr-2 w-4 h-4"
-              />
-              <span className="text-gray-700">
-                Fri 9-Hole Round ($75) - Feb 12, 2:00 PM
-              </span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.events.dinner}
-                onChange={() => handleEventChange('dinner')}
-                className="mr-2 w-4 h-4"
-              />
-              <span className="text-gray-700">
-                Awards Dinner ($50) - Feb 12, 7:00 PM
-              </span>
-            </label>
+            {validationErrors.phone && (
+              <p className="text-red-500 text-xs mt-1">❌ {validationErrors.phone}</p>
+            )}
+            {formData.phone && validatePhone(formData.phone) && (
+              <p className="text-green-500 text-xs mt-1">✓ Valid phone</p>
+            )}
           </div>
 
           <div className="flex justify-between">
@@ -234,7 +219,7 @@ export default function RegistrationForm() {
             </button>
             <button
               onClick={() => setStep(2)}
-              disabled={!formData.firstName || !formData.lastName || !formData.email}
+              disabled={!canProceed()}
               className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50"
             >
               Next
@@ -243,102 +228,68 @@ export default function RegistrationForm() {
         </div>
       )}
 
-      {/* Step 2: Guest Information */}
+      {/* Step 2: Event Selection */}
       {step === 2 && (
         <div className="bg-white rounded-lg shadow p-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-800">
-            Guest Information
+            Event Selection
           </h2>
 
-          {formData.numGuests > 0 ? (
-            <>
-              <p className="text-gray-600 mb-6">
-                You're bringing {formData.numGuests} guest{formData.numGuests !== 1 ? 's' : ''}. Enter their details:
-              </p>
+          <p className="text-gray-600 mb-6">Choose which event(s) you'll attend:</p>
 
-              {formData.guests.map((guest, idx) => (
-                <div key={idx} className="border-b pb-6 mb-6">
-                  <h3 className="font-semibold text-gray-700 mb-3">
-                    Guest {idx + 1} of {formData.numGuests}
-                  </h3>
+          <div className="space-y-3 mb-8">
+            <button
+              onClick={() => handleEventSelect('friday')}
+              className={`w-full p-6 text-left border-2 rounded-lg transition ${
+                formData.eventType === 'friday'
+                  ? 'border-green-700 bg-green-50'
+                  : 'border-gray-300 hover:border-green-700'
+              }`}
+            >
+              <div className="font-semibold text-gray-800">Friday Night Golf</div>
+              <div className="text-sm text-gray-600 mt-1">10-hole individual night golf</div>
+              <div className="text-sm font-medium text-green-700 mt-2">Donation only</div>
+            </button>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={guest.name}
-                        onChange={(e) => handleGuestChange(idx, 'name', e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2"
-                        placeholder="Jane Smith"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Age
-                      </label>
-                      <input
-                        type="number"
-                        value={guest.age}
-                        onChange={(e) => handleGuestChange(idx, 'age', e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2"
-                        placeholder="35"
-                      />
-                    </div>
-                  </div>
+            <button
+              onClick={() => handleEventSelect('saturday')}
+              className={`w-full p-6 text-left border-2 rounded-lg transition ${
+                formData.eventType === 'saturday'
+                  ? 'border-green-700 bg-green-50'
+                  : 'border-gray-300 hover:border-green-700'
+              }`}
+            >
+              <div className="font-semibold text-gray-800">Saturday Championship</div>
+              <div className="text-sm text-gray-600 mt-1">10-hole 2-man scramble</div>
+              <div className="text-sm font-medium text-green-700 mt-2">$50 per golfer</div>
+            </button>
 
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Shirt Size *
-                    </label>
-                    <select
-                      value={guest.shirtSize}
-                      onChange={(e) => handleGuestChange(idx, 'shirtSize', e.target.value)}
-                      className="w-full border border-gray-300 rounded px-3 py-2"
-                    >
-                      <option value="">Select a size</option>
-                      <option value="s">Small</option>
-                      <option value="m">Medium</option>
-                      <option value="l">Large</option>
-                      <option value="xl">X-Large</option>
-                    </select>
-                  </div>
+            <button
+              onClick={() => handleEventSelect('both')}
+              className={`w-full p-6 text-left border-2 rounded-lg transition ${
+                formData.eventType === 'both'
+                  ? 'border-green-700 bg-green-50'
+                  : 'border-gray-300 hover:border-green-700'
+              }`}
+            >
+              <div className="font-semibold text-gray-800">Both Events</div>
+              <div className="text-sm text-gray-600 mt-1">Friday & Saturday Golf</div>
+              <div className="text-sm font-medium text-green-700 mt-2">Donation + $50/golfer</div>
+            </button>
 
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Meal Preference
-                    </label>
-                    <select
-                      value={guest.mealPref}
-                      onChange={(e) => handleGuestChange(idx, 'mealPref', e.target.value)}
-                      className="w-full border border-gray-300 rounded px-3 py-2"
-                    >
-                      <option value="">Select preference</option>
-                      <option value="breakfast">Breakfast</option>
-                      <option value="lunch">Lunch</option>
-                      <option value="dinner">Dinner</option>
-                      <option value="none">None</option>
-                    </select>
-                  </div>
-                </div>
-              ))}
-
-              {formData.guests.length < formData.numGuests && (
-                <button
-                  onClick={handleAddGuest}
-                  className="mb-6 px-4 py-2 text-green-700 border border-green-700 rounded hover:bg-green-50"
-                >
-                  + Add Guest {formData.guests.length + 1}
-                </button>
-              )}
-            </>
-          ) : (
-            <p className="text-gray-600 text-center py-8">
-              No guests selected. Click "Next" to continue.
-            </p>
-          )}
+            <button
+              onClick={() => handleEventSelect('non-golfer')}
+              className={`w-full p-6 text-left border-2 rounded-lg transition ${
+                formData.eventType === 'non-golfer'
+                  ? 'border-green-700 bg-green-50'
+                  : 'border-gray-300 hover:border-green-700'
+              }`}
+            >
+              <div className="font-semibold text-gray-800">Non-Golfer / Awards Ceremony</div>
+              <div className="text-sm text-gray-600 mt-1">Join us for celebration & awards</div>
+              <div className="text-sm font-medium text-green-700 mt-2">Donation only</div>
+            </button>
+          </div>
 
           <div className="flex justify-between">
             <button
@@ -349,7 +300,8 @@ export default function RegistrationForm() {
             </button>
             <button
               onClick={() => setStep(3)}
-              className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+              disabled={!formData.eventType}
+              className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50"
             >
               Next
             </button>
@@ -357,58 +309,168 @@ export default function RegistrationForm() {
         </div>
       )}
 
-      {/* Step 3: Review */}
+      {/* Step 3: Guests & Details */}
       {step === 3 && (
+        <div className="bg-white rounded-lg shadow p-8">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">
+            Guests & Details
+          </h2>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Number of Guests *
+            </label>
+            <input
+              type="number"
+              name="numGuests"
+              value={formData.numGuests}
+              onChange={(e) => {
+                const num = parseInt(e.target.value) || 0;
+                setFormData(prev => ({
+                  ...prev,
+                  numGuests: num,
+                  guests: prev.guests.slice(0, num),
+                }));
+              }}
+              min="0"
+              max="10"
+              className="w-full border border-gray-300 rounded px-3 py-2"
+            />
+          </div>
+
+          {formData.numGuests > 0 && (
+            <div className="mb-6">
+              <div className="space-y-4">
+                {Array.from({ length: formData.numGuests }).map((_, idx) => (
+                  <div key={idx} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-semibold text-gray-700">
+                        Guest {idx + 1}
+                      </h3>
+                      {formData.guests[idx] && (
+                        <button
+                          onClick={() => handleDeleteGuest(idx)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.guests[idx]?.name || ''}
+                          onChange={(e) => handleGuestChange(idx, 'name', e.target.value)}
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          placeholder="Jane Smith"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Age
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.guests[idx]?.age || ''}
+                          onChange={(e) => handleGuestChange(idx, 'age', e.target.value)}
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          placeholder="35"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Shirt Size
+                      </label>
+                      <select
+                        value={formData.guests[idx]?.shirtSize || ''}
+                        onChange={(e) => handleGuestChange(idx, 'shirtSize', e.target.value)}
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                      >
+                        <option value="">Select size</option>
+                        <option value="s">Small</option>
+                        <option value="m">Medium</option>
+                        <option value="l">Large</option>
+                        <option value="xl">X-Large</option>
+                        <option value="xxl">2X-Large</option>
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between">
+            <button
+              onClick={() => setStep(2)}
+              className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Back
+            </button>
+            <button
+              onClick={() => setStep(4)}
+              className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+            >
+              Review
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Review & Confirm */}
+      {step === 4 && (
         <div className="bg-white rounded-lg shadow p-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-800">
             Review & Confirm
           </h2>
 
-          <div className="space-y-6">
-            <div>
+          <div className="space-y-6 mb-8">
+            <div className="border rounded-lg p-4 bg-gray-50">
               <h3 className="font-semibold text-gray-700 mb-2">Primary Registrant</h3>
-              <div className="text-gray-600 space-y-1">
-                <p>Name: {formData.firstName} {formData.lastName}</p>
-                <p>Email: {formData.email}</p>
-                {formData.phone && <p>Phone: {formData.phone}</p>}
-                <p>Shirt Size: {formData.shirtSize.toUpperCase()}</p>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
+                <p><strong>Email:</strong> {formData.email}</p>
+                {formData.phone && <p><strong>Phone:</strong> {formData.phone}</p>}
               </div>
             </div>
 
-            {formData.guests.length > 0 && (
-              <div>
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <h3 className="font-semibold text-gray-700 mb-2">Event</h3>
+              <div className="text-sm text-gray-600">
+                {formData.eventType === 'friday' && 'Friday Night Golf'}
+                {formData.eventType === 'saturday' && 'Saturday Championship'}
+                {formData.eventType === 'both' && 'Both Events (Friday & Saturday)'}
+                {formData.eventType === 'non-golfer' && 'Non-Golfer / Awards Ceremony'}
+              </div>
+            </div>
+
+            {formData.numGuests > 0 && (
+              <div className="border rounded-lg p-4 bg-gray-50">
                 <h3 className="font-semibold text-gray-700 mb-2">
-                  Guests ({formData.guests.length})
+                  Guests ({formData.numGuests})
                 </h3>
-                {formData.guests.map((guest, idx) => (
-                  <div key={idx} className="text-gray-600 mb-2">
-                    • {guest.name || `Guest ${idx + 1}`}
-                    {guest.age && ` (Age ${guest.age})`}
-                  </div>
-                ))}
+                <div className="text-sm text-gray-600 space-y-2">
+                  {formData.guests.map((guest, idx) => (
+                    <p key={idx}>
+                      • {guest.name || `Guest ${idx + 1}`}
+                      {guest.age && ` (Age ${guest.age})`}
+                    </p>
+                  ))}
+                </div>
               </div>
             )}
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Events Selected</h3>
-              <div className="text-gray-600 space-y-1">
-                {formData.events.thursday18Hole && <p>✓ Thu 18-Hole Championship</p>}
-                {formData.events.friday9Hole && <p>✓ Fri 9-Hole Round</p>}
-                {formData.events.dinner && <p>✓ Awards Dinner</p>}
-              </div>
-            </div>
           </div>
 
-          <div className="mt-8 p-4 bg-gray-100 rounded">
-            <p className="text-sm text-gray-600">
-              <input type="checkbox" className="mr-2" defaultChecked />
-              I agree to the terms and conditions
-            </p>
-          </div>
-
-          <div className="flex justify-between mt-8">
+          <div className="flex justify-between">
             <button
-              onClick={() => setStep(2)}
+              onClick={() => setStep(3)}
               className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
             >
               Back
