@@ -7,12 +7,20 @@ export default function RegistrationForm() {
     lastName: '',
     email: '',
     phone: '',
+    shirtSize: '',
     eventType: '', // 'friday', 'saturday', or 'both'
     numGuests: 0,
     guests: [],
+    hasPartner: false,
+    partnerName: '',
+    partnerEmail: '',
+    partnerPhone: '',
+    partnerShirtSize: '',
   });
   const [validationErrors, setValidationErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [partnerSearch, setPartnerSearch] = useState('');
+  const [partnerSuggestions, setPartnerSuggestions] = useState([]);
 
   // Real-time email validation
   const validateEmail = (email) => {
@@ -260,6 +268,33 @@ export default function RegistrationForm() {
             )}
           </div>
 
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Shirt Size *
+            </label>
+            <select
+              name="shirtSize"
+              value={formData.shirtSize}
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 rounded px-3 py-2"
+            >
+              <option value="">Select size</option>
+              <optgroup label="Adult">
+                <option value="adult-s">Adult S</option>
+                <option value="adult-m">Adult M</option>
+                <option value="adult-l">Adult L</option>
+                <option value="adult-xl">Adult XL</option>
+                <option value="adult-xxl">Adult XXL</option>
+                <option value="adult-xxxl">Adult XXXL</option>
+              </optgroup>
+              <optgroup label="Children">
+                <option value="child">Child (8 and under)</option>
+                <option value="toddler">Toddler</option>
+                <option value="infant">Infant</option>
+              </optgroup>
+            </select>
+          </div>
+
           <div className="flex justify-between">
             <button
               onClick={() => setStep(1)}
@@ -376,10 +411,16 @@ export default function RegistrationForm() {
               value={formData.numGuests}
               onChange={(e) => {
                 const num = parseInt(e.target.value) || 0;
+                const currentGuests = formData.guests || [];
+                let newGuests = currentGuests.slice(0, num);
+                // Ensure all indices up to num have guest objects
+                while (newGuests.length < num) {
+                  newGuests.push({ name: '', age: '', shirtSize: '' });
+                }
                 setFormData(prev => ({
                   ...prev,
                   numGuests: num,
-                  guests: prev.guests.slice(0, num),
+                  guests: newGuests,
                 }));
               }}
               min="0"
@@ -444,15 +485,127 @@ export default function RegistrationForm() {
                         className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
                       >
                         <option value="">Select size</option>
-                        <option value="s">Small</option>
-                        <option value="m">Medium</option>
-                        <option value="l">Large</option>
-                        <option value="xl">X-Large</option>
-                        <option value="xxl">2X-Large</option>
+                        <optgroup label="Adult">
+                          <option value="adult-s">Adult S</option>
+                          <option value="adult-m">Adult M</option>
+                          <option value="adult-l">Adult L</option>
+                          <option value="adult-xl">Adult XL</option>
+                          <option value="adult-xxl">Adult XXL</option>
+                          <option value="adult-xxxl">Adult XXXL</option>
+                        </optgroup>
+                        <optgroup label="Children">
+                          <option value="child">Child (8 and under)</option>
+                          <option value="toddler">Toddler</option>
+                          <option value="infant">Infant</option>
+                        </optgroup>
                       </select>
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6 border-t pt-6">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="hasPartner"
+                checked={formData.hasPartner}
+                onChange={(e) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    hasPartner: e.target.checked,
+                    // Clear partner fields if unchecked
+                    ...(e.target.checked ? {} : {
+                      partnerName: '',
+                      partnerEmail: '',
+                      partnerPhone: '',
+                      partnerShirtSize: '',
+                    }),
+                  }));
+                }}
+                className="w-4 h-4 border-gray-300 rounded"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                Is this a 2-person scramble with a partner?
+              </span>
+            </label>
+          </div>
+
+          {formData.hasPartner && (
+            <div className="mb-6 border rounded-lg p-4 bg-blue-50">
+              <h3 className="font-semibold text-gray-700 mb-4">Partner Information</h3>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Partner Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="partnerName"
+                    value={formData.partnerName}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    placeholder="Partner's full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Partner Email <span className="text-xs text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="partnerEmail"
+                    value={formData.partnerEmail}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    placeholder="partner@example.com"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Partner Phone <span className="text-xs text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="partnerPhone"
+                    value={formData.partnerPhone}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    placeholder="(555) 123-4567"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Partner Shirt Size
+                  </label>
+                  <select
+                    name="partnerShirtSize"
+                    value={formData.partnerShirtSize}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                  >
+                    <option value="">Select size</option>
+                    <optgroup label="Adult">
+                      <option value="adult-s">Adult S</option>
+                      <option value="adult-m">Adult M</option>
+                      <option value="adult-l">Adult L</option>
+                      <option value="adult-xl">Adult XL</option>
+                      <option value="adult-xxl">Adult XXL</option>
+                      <option value="adult-xxxl">Adult XXXL</option>
+                    </optgroup>
+                    <optgroup label="Children">
+                      <option value="child">Child (8 and under)</option>
+                      <option value="toddler">Toddler</option>
+                      <option value="infant">Infant</option>
+                    </optgroup>
+                  </select>
+                </div>
               </div>
             </div>
           )}
@@ -511,8 +664,21 @@ export default function RegistrationForm() {
                     <p key={idx}>
                       • {guest.name || `Guest ${idx + 1}`}
                       {guest.age && ` (Age ${guest.age})`}
+                      {guest.shirtSize && ` - Shirt: ${guest.shirtSize}`}
                     </p>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {formData.hasPartner && (
+              <div className="border rounded-lg p-4 bg-blue-50">
+                <h3 className="font-semibold text-gray-700 mb-2">Partner Information</h3>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p><strong>Name:</strong> {formData.partnerName}</p>
+                  {formData.partnerEmail && <p><strong>Email:</strong> {formData.partnerEmail}</p>}
+                  {formData.partnerPhone && <p><strong>Phone:</strong> {formData.partnerPhone}</p>}
+                  {formData.partnerShirtSize && <p><strong>Shirt Size:</strong> {formData.partnerShirtSize}</p>}
                 </div>
               </div>
             )}
