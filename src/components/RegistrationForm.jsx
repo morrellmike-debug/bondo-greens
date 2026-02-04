@@ -3,25 +3,25 @@ import { useState } from 'react';
 export default function RegistrationForm() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
+    // Registrant
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
-    shirtSize: '',
-    eventType: '', // 'friday', 'saturday', or 'both'
-    numGuests: 0,
-    guests: [],
-    hasPartner: false,
+    shirtSize: '', // optional
+    eventType: '', // 'friday', 'saturday', 'both', or 'non-golfer'
+    // Partner (if Saturday/Both)
     partnerName: '',
     partnerEmail: '',
     partnerPhone: '',
-    partnerShirtSize: '',
+    partnerShirtSize: '', // optional
+    // Guests for both
+    registrantGuests: [],
+    partnerGuests: [],
   });
   const [validationErrors, setValidationErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
-  const [partnerSearch, setPartnerSearch] = useState('');
-  const [partnerSuggestions, setPartnerSuggestions] = useState([]);
-  const [partnerMode, setPartnerMode] = useState(null); // 'lookup', 'assign', or null
+  const [guestOwner, setGuestOwner] = useState('registrant'); // 'registrant' or 'partner'
 
   // Real-time email validation
   const validateEmail = (email) => {
@@ -144,34 +144,72 @@ export default function RegistrationForm() {
   };
 
   const handleAddGuest = () => {
-    setFormData(prev => ({
-      ...prev,
-      guests: [...prev.guests, { name: '', category: '', shirtSize: '' }],
-    }));
+    setFormData(prev => {
+      const newGuest = { name: '', category: '', shirtSize: '' };
+      if (guestOwner === 'registrant') {
+        return {
+          ...prev,
+          registrantGuests: [...prev.registrantGuests, newGuest],
+        };
+      } else {
+        return {
+          ...prev,
+          partnerGuests: [...prev.partnerGuests, newGuest],
+        };
+      }
+    });
   };
 
   const handleGuestChange = (idx, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      guests: prev.guests.map((g, i) => {
-        if (i === idx) {
-          // If category changed, reset shirtSize
-          if (field === 'category') {
-            return { ...g, [field]: value, shirtSize: '' };
-          }
-          return { ...g, [field]: value };
-        }
-        return g;
-      }),
-    }));
+    setFormData(prev => {
+      if (guestOwner === 'registrant') {
+        return {
+          ...prev,
+          registrantGuests: prev.registrantGuests.map((g, i) => {
+            if (i === idx) {
+              if (field === 'category') {
+                return { ...g, [field]: value, shirtSize: '' };
+              }
+              return { ...g, [field]: value };
+            }
+            return g;
+          }),
+        };
+      } else {
+        return {
+          ...prev,
+          partnerGuests: prev.partnerGuests.map((g, i) => {
+            if (i === idx) {
+              if (field === 'category') {
+                return { ...g, [field]: value, shirtSize: '' };
+              }
+              return { ...g, [field]: value };
+            }
+            return g;
+          }),
+        };
+      }
+    });
   };
 
   const handleDeleteGuest = (idx) => {
-    setFormData(prev => ({
-      ...prev,
-      guests: prev.guests.filter((_, i) => i !== idx),
-    }));
+    setFormData(prev => {
+      if (guestOwner === 'registrant') {
+        return {
+          ...prev,
+          registrantGuests: prev.registrantGuests.filter((_, i) => i !== idx),
+        };
+      } else {
+        return {
+          ...prev,
+          partnerGuests: prev.partnerGuests.filter((_, i) => i !== idx),
+        };
+      }
+    });
   };
+
+  const currentGuests = guestOwner === 'registrant' ? formData.registrantGuests : formData.partnerGuests;
+  const totalMeals = formData.registrantGuests.length + formData.partnerGuests.length;
 
   const canProceed = () => {
     // Phone is optional but if entered must be valid
@@ -200,19 +238,16 @@ export default function RegistrationForm() {
         phone: '',
         shirtSize: '',
         eventType: '',
-        numGuests: 0,
-        guests: [],
-        hasPartner: false,
         partnerName: '',
         partnerEmail: '',
         partnerPhone: '',
         partnerShirtSize: '',
+        registrantGuests: [],
+        partnerGuests: [],
       });
       setValidationErrors({});
       setSubmitted(false);
-      setPartnerMode(null);
-      setPartnerSearch('');
-      setPartnerSuggestions([]);
+      setGuestOwner('registrant');
     }, 500);
   };
 
@@ -355,7 +390,7 @@ export default function RegistrationForm() {
         </div>
       )}
 
-      {/* Step 2: Event Selection */}
+      {/* Step 2: Event Selection & Partner Info */}
       {step === 2 && (
         <div className="bg-white rounded-lg shadow p-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-800">
@@ -429,7 +464,7 @@ export default function RegistrationForm() {
             </button>
             <button
               onClick={() => setStep(3)}
-              disabled={!formData.eventType || (formData.eventType === 'saturday' || formData.eventType === 'both') && !partnerMode}
+              disabled={!formData.eventType || ((formData.eventType === 'saturday' || formData.eventType === 'both') && !formData.partnerName)}
               className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50"
             >
               Next
@@ -438,252 +473,165 @@ export default function RegistrationForm() {
             </>
           ) : (
             <>
-              {/* Partner Selection for Saturday/Both */}
-              {(formData.eventType === 'saturday' || formData.eventType === 'both') && !partnerMode && (
-                <div>
-                  <p className="text-gray-700 font-semibold mb-6">
-                    {formData.eventType === 'saturday' 
-                      ? 'Saturday is a 2-man scramble. How would you like to find a partner?'
-                      : 'Saturday is a 2-man scramble. How would you like to find a partner?'}
-                  </p>
+              {/* Partner Info for Saturday/Both */}
+              {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
+                <div className="mb-8 border rounded-lg p-6 bg-blue-50">
+                  <h3 className="font-semibold text-gray-700 mb-4">
+                    2-Man Scramble Partner Information
+                  </h3>
                   
-                  <div className="space-y-3 mb-8">
-                    <button
-                      onClick={() => setPartnerMode('lookup')}
-                      className="w-full p-6 text-left border-2 border-gray-300 rounded-lg hover:border-blue-700 hover:bg-blue-50 transition"
-                    >
-                      <div className="font-semibold text-gray-800">Find a Registered Partner</div>
-                      <div className="text-sm text-gray-600 mt-1">Search for someone who has already registered</div>
-                    </button>
-
-                    <button
-                      onClick={() => setPartnerMode('assign')}
-                      className="w-full p-6 text-left border-2 border-gray-300 rounded-lg hover:border-blue-700 hover:bg-blue-50 transition"
-                    >
-                      <div className="font-semibold text-gray-800">Request Partner Assignment</div>
-                      <div className="text-sm text-gray-600 mt-1">We'll match you with another golfer</div>
-                    </button>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Partner Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="partnerName"
+                        value={formData.partnerName}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        placeholder="Partner's full name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Partner Email *
+                      </label>
+                      <input
+                        type="email"
+                        name="partnerEmail"
+                        value={formData.partnerEmail}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        placeholder="partner@example.com"
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex justify-between">
-                    <button
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, eventType: '' }));
-                        setPartnerMode(null);
-                      }}
-                      className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-                    >
-                      Back
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Partner Lookup */}
-              {partnerMode === 'lookup' && (
-                <div>
-                  <p className="text-gray-700 font-semibold mb-6">Search for your partner:</p>
-                  
-                  <div className="mb-6 relative">
-                    <input
-                      type="text"
-                      placeholder="Start typing partner's name..."
-                      value={partnerSearch}
-                      onChange={(e) => {
-                        setPartnerSearch(e.target.value);
-                        const query = e.target.value.toLowerCase();
-                        if (query.length > 0) {
-                          // Mock data: existing registrants
-                          const mockRegistrants = [
-                            { id: 1, name: 'John Smith', email: 'john@example.com' },
-                            { id: 2, name: 'Jane Doe', email: 'jane@example.com' },
-                            { id: 3, name: 'Jim Johnson', email: 'jim@example.com' },
-                            { id: 4, name: 'Jenny Wilson', email: 'jenny@example.com' },
-                            { id: 5, name: 'Jack Brown', email: 'jack@example.com' },
-                          ];
-                          const filtered = mockRegistrants.filter(r => 
-                            r.name.toLowerCase().includes(query)
-                          );
-                          setPartnerSuggestions(filtered);
-                        } else {
-                          setPartnerSuggestions([]);
-                        }
-                      }}
-                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                    />
-                    {partnerSuggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-10">
-                        {partnerSuggestions.map((suggestion) => (
-                          <button
-                            key={suggestion.id}
-                            type="button"
-                            onClick={() => {
-                              setFormData(prev => ({
-                                ...prev,
-                                partnerName: suggestion.name,
-                                partnerEmail: suggestion.email,
-                              }));
-                              setPartnerSuggestions([]);
-                              setPartnerSearch('');
-                              setPartnerMode(null);
-                            }}
-                            className="w-full text-left px-4 py-3 hover:bg-blue-100 border-b last:border-b-0"
-                          >
-                            <div className="font-medium text-gray-800">{suggestion.name}</div>
-                            <div className="text-xs text-gray-500">{suggestion.email}</div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {partnerSuggestions.length === 0 && partnerSearch.length > 0 && (
-                    <p className="text-gray-500 text-sm mb-6">No registrants found. Try another name.</p>
-                  )}
-
-                  <div className="flex justify-between">
-                    <button
-                      onClick={() => {
-                        setPartnerMode(null);
-                        setPartnerSearch('');
-                        setPartnerSuggestions([]);
-                      }}
-                      className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-                    >
-                      Back
-                    </button>
-                    <button
-                      onClick={() => setStep(3)}
-                      disabled={!formData.partnerName}
-                      className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50"
-                    >
-                      Next
-                    </button>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Partner Phone
+                      </label>
+                      <input
+                        type="text"
+                        name="partnerPhone"
+                        value={formData.partnerPhone}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        placeholder="(555) 123-4567"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Partner Shirt Size <span className="text-xs text-gray-500">(optional)</span>
+                      </label>
+                      <select
+                        name="partnerShirtSize"
+                        value={formData.partnerShirtSize}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                      >
+                        <option value="">No shirt</option>
+                        <option value="adult-s">Small</option>
+                        <option value="adult-m">Medium</option>
+                        <option value="adult-l">Large</option>
+                        <option value="adult-xl">X-Large</option>
+                        <option value="adult-xxl">2X-Large</option>
+                        <option value="adult-3xl">3X-Large</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Partner Assignment Request */}
-              {partnerMode === 'assign' && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-                  <p className="text-gray-700 mb-4">
-                    ✓ We'll match you with another golfer for the Saturday 2-man scramble. We'll reach out to confirm your partner.
-                  </p>
-                  <div className="mb-6 p-4 bg-white border border-blue-200 rounded">
-                    <p className="text-sm text-gray-600">
-                      <strong>Your contact info:</strong><br/>
-                      {formData.firstName} {formData.lastName}<br/>
-                      {formData.email}<br/>
-                      {formData.phone && formatPhoneForDisplay(formData.phone)}
-                    </p>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <button
-                      onClick={() => {
-                        setPartnerMode(null);
-                        setPartnerSearch('');
-                        setPartnerSuggestions([]);
-                      }}
-                      className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-                    >
-                      Back
-                    </button>
-                    <button
-                      onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          partnerName: 'Pending Assignment',
-                          partnerEmail: '',
-                        }));
-                        setPartnerMode(null);
-                        setStep(3);
-                      }}
-                      className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Non-Partner Events - Skip to Step 3 */}
-              {(formData.eventType === 'friday' || formData.eventType === 'non-golfer') && (
-                <div className="flex justify-between">
-                  <button
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, eventType: '' }));
-                      setPartnerMode(null);
-                    }}
-                    className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-                  >
-                    Back
-                  </button>
-                  <button
-                    onClick={() => setStep(3)}
-                    className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <div className="flex justify-between">
+                <button
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, eventType: '' }));
+                  }}
+                  className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+                >
+                  Next
+                </button>
+              </div>
             </>
           )}
         </div>
       )}
 
-      {/* Step 3: Guests & Details */}
+      {/* Step 3: Guests & Meals */}
       {step === 3 && (
         <div className="bg-white rounded-lg shadow p-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-800">
-            Guests & Details
+            Guests & Meals
           </h2>
 
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Number of Guests *
-            </label>
-            <input
-              type="number"
-              name="numGuests"
-              value={formData.numGuests}
-              onChange={(e) => {
-                const num = parseInt(e.target.value) || 0;
-                const currentGuests = formData.guests || [];
-                let newGuests = currentGuests.slice(0, num);
-                // Ensure all indices up to num have guest objects
-                while (newGuests.length < num) {
-                  newGuests.push({ name: '', category: '', shirtSize: '' });
-                }
-                setFormData(prev => ({
-                  ...prev,
-                  numGuests: num,
-                  guests: newGuests,
-                }));
-              }}
-              min="0"
-              max="10"
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            />
+          <p className="text-gray-600 mb-6">
+            Add family members (guests). Meals are included for all guests. T-shirts are optional.
+          </p>
+
+          {/* Guest Owner Toggle */}
+          <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex gap-4">
+              <button
+                onClick={() => setGuestOwner('registrant')}
+                className={`flex-1 py-2 px-4 rounded font-medium transition ${
+                  guestOwner === 'registrant'
+                    ? 'bg-green-700 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                }`}
+              >
+                {formData.firstName}'s Guests ({formData.registrantGuests.length})
+              </button>
+              {formData.partnerName && (
+                <button
+                  onClick={() => setGuestOwner('partner')}
+                  className={`flex-1 py-2 px-4 rounded font-medium transition ${
+                    guestOwner === 'partner'
+                      ? 'bg-green-700 text-white'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                  }`}
+                >
+                  {formData.partnerName}'s Guests ({formData.partnerGuests.length})
+                </button>
+              )}
+            </div>
           </div>
 
-          {formData.numGuests > 0 && (
+          {/* Add Guest Button */}
+          <div className="mb-6">
+            <button
+              onClick={handleAddGuest}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+            >
+              + Add Guest
+            </button>
+          </div>
+
+          {/* Guests List */}
+          {currentGuests.length > 0 && (
             <div className="mb-6">
               <div className="space-y-4">
-                {Array.from({ length: formData.numGuests }).map((_, idx) => (
+                {currentGuests.map((guest, idx) => (
                   <div key={idx} className="border rounded-lg p-4">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-semibold text-gray-700">
                         Guest {idx + 1}
                       </h3>
-                      {formData.guests[idx] && (
-                        <button
-                          onClick={() => handleDeleteGuest(idx)}
-                          className="text-red-500 hover:text-red-700 text-sm"
-                        >
-                          Remove
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleDeleteGuest(idx)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        Remove
+                      </button>
                     </div>
 
                     <div className="mb-4">
@@ -692,7 +640,7 @@ export default function RegistrationForm() {
                       </label>
                       <input
                         type="text"
-                        value={formData.guests[idx]?.name || ''}
+                        value={guest.name || ''}
                         onChange={(e) => handleGuestChange(idx, 'name', e.target.value)}
                         className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
                         placeholder="Jane Smith"
@@ -704,7 +652,7 @@ export default function RegistrationForm() {
                         Category *
                       </label>
                       <select
-                        value={formData.guests[idx]?.category || ''}
+                        value={guest.category || ''}
                         onChange={(e) => handleGuestChange(idx, 'category', e.target.value)}
                         className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
                       >
@@ -716,18 +664,18 @@ export default function RegistrationForm() {
                       </select>
                     </div>
 
-                    {formData.guests[idx]?.category && (
+                    {guest.category && (
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Shirt Size *
+                          Shirt Size <span className="text-xs text-gray-500">(optional)</span>
                         </label>
                         <select
-                          value={formData.guests[idx]?.shirtSize || ''}
+                          value={guest.shirtSize || ''}
                           onChange={(e) => handleGuestChange(idx, 'shirtSize', e.target.value)}
                           className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
                         >
-                          <option value="">Select size</option>
-                          {shirtSizesByCategory[formData.guests[idx].category]?.map(size => (
+                          <option value="">No shirt</option>
+                          {shirtSizesByCategory[guest.category]?.map(size => (
                             <option key={size.value} value={size.value}>
                               {size.label}
                             </option>
@@ -741,14 +689,12 @@ export default function RegistrationForm() {
             </div>
           )}
 
-          {/* Partner info from Step 2 - Display only */}
-          {formData.partnerName && (
-            <div className="mb-6 border rounded-lg p-4 bg-blue-50">
-              <h3 className="font-semibold text-gray-700 mb-2">Partner (Selected in Event)</h3>
-              <div className="text-sm text-gray-600">
-                <p><strong>Name:</strong> {formData.partnerName}</p>
-                {formData.partnerEmail && <p><strong>Email:</strong> {formData.partnerEmail}</p>}
-              </div>
+          {/* Meal Summary */}
+          {totalMeals > 0 && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-gray-700">
+                <strong>Total Meals Included:</strong> {totalMeals}
+              </p>
             </div>
           )}
 
@@ -763,7 +709,7 @@ export default function RegistrationForm() {
               onClick={() => setStep(4)}
               className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
             >
-              Review
+              Review & Confirm
             </button>
           </div>
         </div>
@@ -797,31 +743,47 @@ export default function RegistrationForm() {
               </div>
             </div>
 
-            {formData.numGuests > 0 && (
-              <div className="border rounded-lg p-4 bg-gray-50">
-                <h3 className="font-semibold text-gray-700 mb-2">
-                  Guests ({formData.numGuests})
-                </h3>
-                <div className="text-sm text-gray-600 space-y-2">
-                  {formData.guests.map((guest, idx) => (
-                    <p key={idx}>
-                      • {guest.name || `Guest ${idx + 1}`}
-                      {guest.category && ` (${guest.category.charAt(0).toUpperCase() + guest.category.slice(1)})`}
-                      {guest.shirtSize && ` - Shirt: ${guest.shirtSize}`}
-                    </p>
-                  ))}
+            {formData.partnerName && (
+              <div className="border rounded-lg p-4 bg-blue-50">
+                <h3 className="font-semibold text-gray-700 mb-2">Partner (Saturday 2-Man Scramble)</h3>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p><strong>Name:</strong> {formData.partnerName}</p>
+                  <p><strong>Email:</strong> {formData.partnerEmail}</p>
+                  {formData.partnerPhone && <p><strong>Phone:</strong> {formatPhoneForDisplay(formData.partnerPhone)}</p>}
+                  {formData.partnerShirtSize && <p><strong>Shirt Size:</strong> {formData.partnerShirtSize}</p>}
                 </div>
               </div>
             )}
 
-            {formData.partnerName && (
-              <div className="border rounded-lg p-4 bg-blue-50">
-                <h3 className="font-semibold text-gray-700 mb-2">Partner (Saturday Scramble)</h3>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <p><strong>Name:</strong> {formData.partnerName}</p>
-                  {formData.partnerEmail && <p><strong>Email:</strong> {formData.partnerEmail}</p>}
-                  {formData.partnerName === 'Pending Assignment' && (
-                    <p><strong>Status:</strong> Awaiting organizer assignment</p>
+            {(formData.registrantGuests.length > 0 || formData.partnerGuests.length > 0) && (
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="font-semibold text-gray-700 mb-3">
+                  Guests & Meals ({totalMeals})
+                </h3>
+                <div className="text-sm text-gray-600 space-y-3">
+                  {formData.registrantGuests.length > 0 && (
+                    <div>
+                      <p className="font-medium text-gray-700 mb-2">{formData.firstName}'s Guests:</p>
+                      {formData.registrantGuests.map((guest, idx) => (
+                        <p key={`reg-${idx}`} className="ml-4">
+                          • {guest.name}
+                          {guest.category && ` (${guest.category.charAt(0).toUpperCase() + guest.category.slice(1)})`}
+                          {guest.shirtSize && ` - Shirt: ${guest.shirtSize}`}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  {formData.partnerGuests.length > 0 && (
+                    <div>
+                      <p className="font-medium text-gray-700 mb-2">{formData.partnerName}'s Guests:</p>
+                      {formData.partnerGuests.map((guest, idx) => (
+                        <p key={`partner-${idx}`} className="ml-4">
+                          • {guest.name}
+                          {guest.category && ` (${guest.category.charAt(0).toUpperCase() + guest.category.slice(1)})`}
+                          {guest.shirtSize && ` - Shirt: ${guest.shirtSize}`}
+                        </p>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
