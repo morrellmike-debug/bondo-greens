@@ -727,6 +727,7 @@ export default function RegistrationForm() {
           <div className="flex justify-between">
             <button
               onClick={() => {
+                setShowEventButtons(true);
                 setFormData(prev => ({ 
                   ...prev, 
                   eventType: '',
