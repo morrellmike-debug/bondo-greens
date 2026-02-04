@@ -24,12 +24,6 @@ export default function ComingSoon() {
             </p>
           </div>
         </div>
-        <a
-          href="https://dev.bondogreens.com"
-          className="inline-block bg-white text-green-700 font-bold py-3 px-8 rounded-lg hover:bg-green-50 transition"
-        >
-          View Dev Site
-        </a>
         <p className="text-green-100 text-sm mt-8">
           Questions? Contact the organizers.
         </p>
