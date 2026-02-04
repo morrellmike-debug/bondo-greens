@@ -22,6 +22,7 @@ export default function RegistrationForm() {
   const [validationErrors, setValidationErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [guestOwner, setGuestOwner] = useState('registrant'); // 'registrant' or 'partner'
+  const [showEventButtons, setShowEventButtons] = useState(true); // Control which view on Step 2
 
   // Real-time email validation
   const validateEmail = (email) => {
@@ -110,6 +111,7 @@ export default function RegistrationForm() {
       ...prev,
       eventType: eventType,
     }));
+    setShowEventButtons(false);
     // Auto-advance for Friday/Non-golfer (no partner needed)
     if (eventType === 'friday' || eventType === 'non-golfer') {
       setTimeout(() => setStep(3), 100);
@@ -252,6 +254,7 @@ export default function RegistrationForm() {
       setValidationErrors({});
       setSubmitted(false);
       setGuestOwner('registrant');
+      setShowEventButtons(true);
     }, 500);
   };
 
@@ -385,7 +388,10 @@ export default function RegistrationForm() {
                 Cancel
               </button>
               <button
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  setShowEventButtons(true);
+                  setStep(2);
+                }}
                 disabled={!canProceed()}
                 className="px-6 py-3 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50 text-base font-medium"
               >
@@ -403,7 +409,7 @@ export default function RegistrationForm() {
             Event Selection
           </h2>
 
-          {!formData.eventType ? (
+          {showEventButtons ? (
             <>
               <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Choose which event(s) you'll attend:</p>
 
@@ -554,7 +560,10 @@ export default function RegistrationForm() {
 
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
                 <button
-                  onClick={() => setStep(1)}
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, eventType: '' }));
+                    setShowEventButtons(true);
+                  }}
                   className="px-6 py-3 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 text-base font-medium"
                 >
                   Back
@@ -716,6 +725,7 @@ export default function RegistrationForm() {
                   partnerGuests: [],
                 }));
                 setGuestOwner('registrant');
+                setShowEventButtons(true);
                 setStep(2);
               }}
               className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
