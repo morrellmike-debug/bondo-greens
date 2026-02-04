@@ -20,22 +20,33 @@ export default function RegistrationForm() {
     return emailRegex.test(email);
   };
 
-  // Real-time phone validation (US format)
+  // Phone validation (US format only: (XXX) XXX-XXXX or XXX-XXX-XXXX)
   const validatePhone = (phone) => {
     if (!phone) return true; // Phone is optional
-    const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
-    return phoneRegex.test(phone);
+    const phoneRegex = /^(\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|([\d ]{10,}))$/;
+    // More strict: allows (XXX) XXX-XXXX, XXX-XXX-XXXX, XXXXXXXXXX (10 digits max)
+    return /^[\d\-\(\)\s]{12,14}$/.test(phone) && /\d{10}/.test(phone.replace(/\D/g, ''));
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Limit phone input to max 14 characters (to prevent too many digits)
+    if (name === 'phone' && value.length > 14) {
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
+  };
 
-    // Real-time validation feedback
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
     const errors = { ...validationErrors };
+
+    // Only validate on blur, not during typing
     if (name === 'email') {
       if (!value) {
         delete errors.email;
@@ -49,7 +60,7 @@ export default function RegistrationForm() {
       if (!value) {
         delete errors.phone;
       } else if (!validatePhone(value)) {
-        errors.phone = 'Please enter a valid phone number';
+        errors.phone = 'Format: (XXX) XXX-XXXX or XXX-XXX-XXXX';
       } else {
         delete errors.phone;
       }
@@ -86,9 +97,10 @@ export default function RegistrationForm() {
   };
 
   const canProceed = () => {
+    // Phone is optional but if entered must be valid
+    const phoneValid = !formData.phone || (validatePhone(formData.phone) && !validationErrors.phone);
     return formData.firstName && formData.lastName && formData.email && 
-           validateEmail(formData.email) && (!formData.phone || validatePhone(formData.phone)) &&
-           !validationErrors.email && !validationErrors.phone;
+           validateEmail(formData.email) && !validationErrors.email && phoneValid;
   };
 
   const handleSubmit = () => {
@@ -175,6 +187,7 @@ export default function RegistrationForm() {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
+              onBlur={handleBlur}
               className={`w-full border rounded px-3 py-2 ${
                 validationErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
@@ -183,7 +196,7 @@ export default function RegistrationForm() {
             {validationErrors.email && (
               <p className="text-red-500 text-xs mt-1">❌ {validationErrors.email}</p>
             )}
-            {formData.email && validateEmail(formData.email) && (
+            {formData.email && validateEmail(formData.email) && !validationErrors.email && (
               <p className="text-green-500 text-xs mt-1">✓ Valid email</p>
             )}
           </div>
@@ -197,6 +210,8 @@ export default function RegistrationForm() {
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
+              onBlur={handleBlur}
+              maxLength="14"
               className={`w-full border rounded px-3 py-2 ${
                 validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
@@ -205,7 +220,7 @@ export default function RegistrationForm() {
             {validationErrors.phone && (
               <p className="text-red-500 text-xs mt-1">❌ {validationErrors.phone}</p>
             )}
-            {formData.phone && validatePhone(formData.phone) && (
+            {formData.phone && validatePhone(formData.phone) && !validationErrors.phone && (
               <p className="text-green-500 text-xs mt-1">✓ Valid phone</p>
             )}
           </div>
