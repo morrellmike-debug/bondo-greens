@@ -110,6 +110,10 @@ export default function RegistrationForm() {
       ...prev,
       eventType: eventType,
     }));
+    // Auto-advance for Friday/Non-golfer (no partner needed)
+    if (eventType === 'friday' || eventType === 'non-golfer') {
+      setTimeout(() => setStep(3), 100);
+    }
   };
 
   const shirtSizesByCategory = {
