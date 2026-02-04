@@ -21,6 +21,7 @@ export default function RegistrationForm() {
   const [submitted, setSubmitted] = useState(false);
   const [partnerSearch, setPartnerSearch] = useState('');
   const [partnerSuggestions, setPartnerSuggestions] = useState([]);
+  const [partnerMode, setPartnerMode] = useState(null); // 'lookup', 'assign', or null
 
   // Real-time email validation
   const validateEmail = (email) => {
@@ -111,17 +112,57 @@ export default function RegistrationForm() {
     }));
   };
 
+  const shirtSizesByCategory = {
+    adult: [
+      { label: 'Small', value: 'adult-s' },
+      { label: 'Medium', value: 'adult-m' },
+      { label: 'Large', value: 'adult-l' },
+      { label: 'X-Large', value: 'adult-xl' },
+      { label: '2X-Large', value: 'adult-xxl' },
+      { label: '3X-Large', value: 'adult-3xl' },
+    ],
+    child: [
+      { label: 'XS (Ages 4-6)', value: 'child-xs' },
+      { label: 'S (Ages 6-8)', value: 'child-s' },
+      { label: 'M (Ages 8-10)', value: 'child-m' },
+      { label: 'L (Ages 10-12)', value: 'child-l' },
+    ],
+    toddler: [
+      { label: '2T', value: 'toddler-2t' },
+      { label: '3T', value: 'toddler-3t' },
+      { label: '4T', value: 'toddler-4t' },
+      { label: '5T', value: 'toddler-5t' },
+    ],
+    infant: [
+      { label: 'NB (Newborn)', value: 'infant-nb' },
+      { label: '0-3 months', value: 'infant-0-3m' },
+      { label: '3-6 months', value: 'infant-3-6m' },
+      { label: '6-12 months', value: 'infant-6-12m' },
+      { label: '12-18 months', value: 'infant-12-18m' },
+      { label: '18-24 months', value: 'infant-18-24m' },
+    ],
+  };
+
   const handleAddGuest = () => {
     setFormData(prev => ({
       ...prev,
-      guests: [...prev.guests, { name: '', age: '', shirtSize: '' }],
+      guests: [...prev.guests, { name: '', category: '', shirtSize: '' }],
     }));
   };
 
   const handleGuestChange = (idx, field, value) => {
     setFormData(prev => ({
       ...prev,
-      guests: prev.guests.map((g, i) => i === idx ? { ...g, [field]: value } : g),
+      guests: prev.guests.map((g, i) => {
+        if (i === idx) {
+          // If category changed, reset shirtSize
+          if (field === 'category') {
+            return { ...g, [field]: value, shirtSize: '' };
+          }
+          return { ...g, [field]: value };
+        }
+        return g;
+      }),
     }));
   };
 
@@ -169,6 +210,9 @@ export default function RegistrationForm() {
       });
       setValidationErrors({});
       setSubmitted(false);
+      setPartnerMode(null);
+      setPartnerSearch('');
+      setPartnerSuggestions([]);
     }, 500);
   };
 
@@ -318,9 +362,11 @@ export default function RegistrationForm() {
             Event Selection
           </h2>
 
-          <p className="text-gray-600 mb-6">Choose which event(s) you'll attend:</p>
+          {!formData.eventType ? (
+            <>
+              <p className="text-gray-600 mb-6">Choose which event(s) you'll attend:</p>
 
-          <div className="space-y-3 mb-8">
+              <div className="space-y-3 mb-8">
             <button
               onClick={() => handleEventSelect('friday')}
               className={`w-full p-6 text-left border-2 rounded-lg transition ${
@@ -383,12 +429,206 @@ export default function RegistrationForm() {
             </button>
             <button
               onClick={() => setStep(3)}
-              disabled={!formData.eventType}
+              disabled={!formData.eventType || (formData.eventType === 'saturday' || formData.eventType === 'both') && !partnerMode}
               className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50"
             >
               Next
             </button>
           </div>
+            </>
+          ) : (
+            <>
+              {/* Partner Selection for Saturday/Both */}
+              {(formData.eventType === 'saturday' || formData.eventType === 'both') && !partnerMode && (
+                <div>
+                  <p className="text-gray-700 font-semibold mb-6">
+                    {formData.eventType === 'saturday' 
+                      ? 'Saturday is a 2-man scramble. How would you like to find a partner?'
+                      : 'Saturday is a 2-man scramble. How would you like to find a partner?'}
+                  </p>
+                  
+                  <div className="space-y-3 mb-8">
+                    <button
+                      onClick={() => setPartnerMode('lookup')}
+                      className="w-full p-6 text-left border-2 border-gray-300 rounded-lg hover:border-blue-700 hover:bg-blue-50 transition"
+                    >
+                      <div className="font-semibold text-gray-800">Find a Registered Partner</div>
+                      <div className="text-sm text-gray-600 mt-1">Search for someone who has already registered</div>
+                    </button>
+
+                    <button
+                      onClick={() => setPartnerMode('assign')}
+                      className="w-full p-6 text-left border-2 border-gray-300 rounded-lg hover:border-blue-700 hover:bg-blue-50 transition"
+                    >
+                      <div className="font-semibold text-gray-800">Request Partner Assignment</div>
+                      <div className="text-sm text-gray-600 mt-1">We'll match you with another golfer</div>
+                    </button>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <button
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, eventType: '' }));
+                        setPartnerMode(null);
+                      }}
+                      className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                      Back
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Partner Lookup */}
+              {partnerMode === 'lookup' && (
+                <div>
+                  <p className="text-gray-700 font-semibold mb-6">Search for your partner:</p>
+                  
+                  <div className="mb-6 relative">
+                    <input
+                      type="text"
+                      placeholder="Start typing partner's name..."
+                      value={partnerSearch}
+                      onChange={(e) => {
+                        setPartnerSearch(e.target.value);
+                        const query = e.target.value.toLowerCase();
+                        if (query.length > 0) {
+                          // Mock data: existing registrants
+                          const mockRegistrants = [
+                            { id: 1, name: 'John Smith', email: 'john@example.com' },
+                            { id: 2, name: 'Jane Doe', email: 'jane@example.com' },
+                            { id: 3, name: 'Jim Johnson', email: 'jim@example.com' },
+                            { id: 4, name: 'Jenny Wilson', email: 'jenny@example.com' },
+                            { id: 5, name: 'Jack Brown', email: 'jack@example.com' },
+                          ];
+                          const filtered = mockRegistrants.filter(r => 
+                            r.name.toLowerCase().includes(query)
+                          );
+                          setPartnerSuggestions(filtered);
+                        } else {
+                          setPartnerSuggestions([]);
+                        }
+                      }}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    />
+                    {partnerSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-10">
+                        {partnerSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion.id}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                partnerName: suggestion.name,
+                                partnerEmail: suggestion.email,
+                              }));
+                              setPartnerSuggestions([]);
+                              setPartnerSearch('');
+                              setPartnerMode(null);
+                            }}
+                            className="w-full text-left px-4 py-3 hover:bg-blue-100 border-b last:border-b-0"
+                          >
+                            <div className="font-medium text-gray-800">{suggestion.name}</div>
+                            <div className="text-xs text-gray-500">{suggestion.email}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {partnerSuggestions.length === 0 && partnerSearch.length > 0 && (
+                    <p className="text-gray-500 text-sm mb-6">No registrants found. Try another name.</p>
+                  )}
+
+                  <div className="flex justify-between">
+                    <button
+                      onClick={() => {
+                        setPartnerMode(null);
+                        setPartnerSearch('');
+                        setPartnerSuggestions([]);
+                      }}
+                      className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={() => setStep(3)}
+                      disabled={!formData.partnerName}
+                      className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Partner Assignment Request */}
+              {partnerMode === 'assign' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                  <p className="text-gray-700 mb-4">
+                    ✓ We'll match you with another golfer for the Saturday 2-man scramble. We'll reach out to confirm your partner.
+                  </p>
+                  <div className="mb-6 p-4 bg-white border border-blue-200 rounded">
+                    <p className="text-sm text-gray-600">
+                      <strong>Your contact info:</strong><br/>
+                      {formData.firstName} {formData.lastName}<br/>
+                      {formData.email}<br/>
+                      {formData.phone && formatPhoneForDisplay(formData.phone)}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <button
+                      onClick={() => {
+                        setPartnerMode(null);
+                        setPartnerSearch('');
+                        setPartnerSuggestions([]);
+                      }}
+                      className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          partnerName: 'Pending Assignment',
+                          partnerEmail: '',
+                        }));
+                        setPartnerMode(null);
+                        setStep(3);
+                      }}
+                      className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Non-Partner Events - Skip to Step 3 */}
+              {(formData.eventType === 'friday' || formData.eventType === 'non-golfer') && (
+                <div className="flex justify-between">
+                  <button
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, eventType: '' }));
+                      setPartnerMode(null);
+                    }}
+                    className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={() => setStep(3)}
+                    className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -413,7 +653,7 @@ export default function RegistrationForm() {
                 let newGuests = currentGuests.slice(0, num);
                 // Ensure all indices up to num have guest objects
                 while (newGuests.length < num) {
-                  newGuests.push({ name: '', age: '', shirtSize: '' });
+                  newGuests.push({ name: '', category: '', shirtSize: '' });
                 }
                 setFormData(prev => ({
                   ...prev,
@@ -446,155 +686,68 @@ export default function RegistrationForm() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.guests[idx]?.name || ''}
-                          onChange={(e) => handleGuestChange(idx, 'name', e.target.value)}
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                          placeholder="Jane Smith"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Age
-                        </label>
-                        <input
-                          type="number"
-                          value={formData.guests[idx]?.age || ''}
-                          onChange={(e) => handleGuestChange(idx, 'age', e.target.value)}
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                          placeholder="35"
-                        />
-                      </div>
+                    <div className="mb-4">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.guests[idx]?.name || ''}
+                        onChange={(e) => handleGuestChange(idx, 'name', e.target.value)}
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                        placeholder="Jane Smith"
+                      />
                     </div>
 
-                    <div>
+                    <div className="mb-4">
                       <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Shirt Size
+                        Category *
                       </label>
                       <select
-                        value={formData.guests[idx]?.shirtSize || ''}
-                        onChange={(e) => handleGuestChange(idx, 'shirtSize', e.target.value)}
+                        value={formData.guests[idx]?.category || ''}
+                        onChange={(e) => handleGuestChange(idx, 'category', e.target.value)}
                         className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
                       >
-                        <option value="">Select size</option>
-                        <optgroup label="Adult">
-                          <option value="adult-s">Small</option>
-                          <option value="adult-m">Medium</option>
-                          <option value="adult-l">Large</option>
-                          <option value="adult-xl">X-Large</option>
-                          <option value="adult-xxl">2X-Large</option>
-                        </optgroup>
-                        <optgroup label="Children">
-                          <option value="child">Child - Ages 6-8 (46-54")</option>
-                          <option value="toddler">Toddler - Ages 2-5 (38-46")</option>
-                          <option value="infant">Infant - 0-24 months</option>
-                        </optgroup>
+                        <option value="">Select category</option>
+                        <option value="adult">Adult</option>
+                        <option value="child">Child</option>
+                        <option value="toddler">Toddler</option>
+                        <option value="infant">Infant</option>
                       </select>
                     </div>
+
+                    {formData.guests[idx]?.category && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Shirt Size *
+                        </label>
+                        <select
+                          value={formData.guests[idx]?.shirtSize || ''}
+                          onChange={(e) => handleGuestChange(idx, 'shirtSize', e.target.value)}
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                        >
+                          <option value="">Select size</option>
+                          {shirtSizesByCategory[formData.guests[idx].category]?.map(size => (
+                            <option key={size.value} value={size.value}>
+                              {size.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="mb-6 border-t pt-6">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                name="hasPartner"
-                checked={formData.hasPartner}
-                onChange={(e) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    hasPartner: e.target.checked,
-                    // Clear partner fields if unchecked
-                    ...(e.target.checked ? {} : {
-                      partnerName: '',
-                      partnerEmail: '',
-                      partnerPhone: '',
-                      partnerShirtSize: '',
-                    }),
-                  }));
-                }}
-                className="w-4 h-4 border-gray-300 rounded"
-              />
-              <span className="text-sm font-medium text-gray-700">
-                Is this a 2-person scramble with a partner?
-              </span>
-            </label>
-          </div>
-
-          {formData.hasPartner && (
+          {/* Partner info from Step 2 - Display only */}
+          {formData.partnerName && (
             <div className="mb-6 border rounded-lg p-4 bg-blue-50">
-              <h3 className="font-semibold text-gray-700 mb-4">Partner Information</h3>
-              
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Partner Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="partnerName"
-                    value={formData.partnerName}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                    placeholder="Partner's full name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Partner Email <span className="text-xs text-gray-500">(optional)</span>
-                  </label>
-                  <input
-                    type="email"
-                    name="partnerEmail"
-                    value={formData.partnerEmail}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                    placeholder="partner@example.com"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Partner Phone <span className="text-xs text-gray-500">(optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="partnerPhone"
-                    value={formData.partnerPhone}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Partner Shirt Size
-                  </label>
-                  <select
-                    name="partnerShirtSize"
-                    value={formData.partnerShirtSize}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                  >
-                    <option value="">Select size</option>
-                    <option value="adult-s">Small</option>
-                    <option value="adult-m">Medium</option>
-                    <option value="adult-l">Large</option>
-                    <option value="adult-xl">X-Large</option>
-                    <option value="adult-xxl">2X-Large</option>
-                  </select>
-                </div>
+              <h3 className="font-semibold text-gray-700 mb-2">Partner (Selected in Event)</h3>
+              <div className="text-sm text-gray-600">
+                <p><strong>Name:</strong> {formData.partnerName}</p>
+                {formData.partnerEmail && <p><strong>Email:</strong> {formData.partnerEmail}</p>}
               </div>
             </div>
           )}
@@ -653,7 +806,7 @@ export default function RegistrationForm() {
                   {formData.guests.map((guest, idx) => (
                     <p key={idx}>
                       • {guest.name || `Guest ${idx + 1}`}
-                      {guest.age && ` (Age ${guest.age})`}
+                      {guest.category && ` (${guest.category.charAt(0).toUpperCase() + guest.category.slice(1)})`}
                       {guest.shirtSize && ` - Shirt: ${guest.shirtSize}`}
                     </p>
                   ))}
@@ -661,14 +814,15 @@ export default function RegistrationForm() {
               </div>
             )}
 
-            {formData.hasPartner && (
+            {formData.partnerName && (
               <div className="border rounded-lg p-4 bg-blue-50">
-                <h3 className="font-semibold text-gray-700 mb-2">Partner Information</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">Partner (Saturday Scramble)</h3>
                 <div className="text-sm text-gray-600 space-y-1">
                   <p><strong>Name:</strong> {formData.partnerName}</p>
                   {formData.partnerEmail && <p><strong>Email:</strong> {formData.partnerEmail}</p>}
-                  {formData.partnerPhone && <p><strong>Phone:</strong> {formData.partnerPhone}</p>}
-                  {formData.partnerShirtSize && <p><strong>Shirt Size:</strong> {formData.partnerShirtSize}</p>}
+                  {formData.partnerName === 'Pending Assignment' && (
+                    <p><strong>Status:</strong> Awaiting organizer assignment</p>
+                  )}
                 </div>
               </div>
             )}
