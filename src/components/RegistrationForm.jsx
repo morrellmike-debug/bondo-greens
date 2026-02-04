@@ -43,9 +43,15 @@ export default function RegistrationForm() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // For phone: only allow numbers, dashes, parentheses, periods
+    // For phone: only allow numbers, dashes, parentheses, periods, spaces
     if (name === 'phone') {
       const phoneCharsOnly = value.replace(/[^\d\-().\s]/g, '');
+      // Check if there are more than 10 digits
+      const digitsOnly = phoneCharsOnly.replace(/\D/g, '');
+      if (digitsOnly.length > 10) {
+        // Don't update if it exceeds 10 digits
+        return;
+      }
       setFormData(prev => ({
         ...prev,
         [name]: phoneCharsOnly,
