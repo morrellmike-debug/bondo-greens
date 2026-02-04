@@ -84,8 +84,10 @@ export default function RegistrationForm() {
         delete errors.phone;
       } else {
         const digitsOnly = value.replace(/\D/g, '');
-        if (digitsOnly.length !== 10) {
-          errors.phone = `Must contain exactly 10 digits (found ${digitsOnly.length})`;
+        if (digitsOnly.length < 10) {
+          errors.phone = `Phone number incomplete: ${digitsOnly.length}/10 digits`;
+        } else if (digitsOnly.length > 10) {
+          errors.phone = `Too many digits: ${digitsOnly.length}/10 digits`;
         } else {
           delete errors.phone;
         }
@@ -248,7 +250,7 @@ export default function RegistrationForm() {
               className={`w-full border rounded px-3 py-2 ${
                 validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
-              placeholder="(555) 123-4567 or 555-123-4567 or 5551234567"
+              placeholder="(555) 123-4567 — exactly 10 digits required"
             />
             {validationErrors.phone && (
               <p className="text-red-500 text-xs mt-1">❌ {validationErrors.phone}</p>
