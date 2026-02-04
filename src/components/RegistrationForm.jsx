@@ -357,7 +357,7 @@ export default function RegistrationForm() {
             >
               <div className="font-semibold text-gray-800">Both Events</div>
               <div className="text-sm text-gray-600 mt-1">Friday & Saturday Golf</div>
-              <div className="text-sm font-medium text-green-700 mt-2">Donation + $50/golfer</div>
+              <div className="text-sm font-medium text-green-700 mt-2">$50 per golfer</div>
             </button>
 
             <button
