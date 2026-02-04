@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function RegistrationForm() {
   const [step, setStep] = useState(1);
@@ -23,6 +23,13 @@ export default function RegistrationForm() {
   const [submitted, setSubmitted] = useState(false);
   const [guestOwner, setGuestOwner] = useState('registrant'); // 'registrant' or 'partner'
   const [showEventButtons, setShowEventButtons] = useState(true); // Control which view on Step 2
+
+  // When step changes to 2, ensure showEventButtons reflects current eventType
+  useEffect(() => {
+    if (step === 2 && !formData.eventType) {
+      setShowEventButtons(true);
+    }
+  }, [step]);
 
   // Real-time email validation
   const validateEmail = (email) => {
@@ -561,8 +568,14 @@ export default function RegistrationForm() {
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
                 <button
                   onClick={() => {
-                    setFormData(prev => ({ ...prev, eventType: '' }));
-                    setShowEventButtons(true);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      eventType: '',
+                      partnerName: '',
+                      partnerEmail: '',
+                      partnerPhone: '',
+                      partnerShirtSize: '',
+                    }));
                   }}
                   className="px-6 py-3 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 text-base font-medium"
                 >
@@ -717,15 +730,9 @@ export default function RegistrationForm() {
                 setFormData(prev => ({ 
                   ...prev, 
                   eventType: '',
-                  partnerName: '',
-                  partnerEmail: '',
-                  partnerPhone: '',
-                  partnerShirtSize: '',
                   registrantGuests: [],
                   partnerGuests: [],
                 }));
-                setGuestOwner('registrant');
-                setShowEventButtons(true);
                 setStep(2);
               }}
               className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
