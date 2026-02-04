@@ -554,9 +554,7 @@ export default function RegistrationForm() {
 
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
                 <button
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, eventType: '' }));
-                  }}
+                  onClick={() => setStep(1)}
                   className="px-6 py-3 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 text-base font-medium"
                 >
                   Back
@@ -706,7 +704,20 @@ export default function RegistrationForm() {
 
           <div className="flex justify-between">
             <button
-              onClick={() => setStep(2)}
+              onClick={() => {
+                setFormData(prev => ({ 
+                  ...prev, 
+                  eventType: '',
+                  partnerName: '',
+                  partnerEmail: '',
+                  partnerPhone: '',
+                  partnerShirtSize: '',
+                  registrantGuests: [],
+                  partnerGuests: [],
+                }));
+                setGuestOwner('registrant');
+                setStep(2);
+              }}
               className="px-6 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
             >
               Back
