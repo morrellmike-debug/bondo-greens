@@ -285,12 +285,11 @@ export default function RegistrationForm() {
               className="w-full border border-gray-300 rounded px-3 py-2"
             >
               <option value="">Select size</option>
-              <option value="adult-s">Adult Small</option>
-              <option value="adult-m">Adult Medium</option>
-              <option value="adult-l">Adult Large</option>
-              <option value="adult-xl">Adult X-Large</option>
-              <option value="adult-xxl">Adult 2X-Large</option>
-              <option value="adult-xxxl">Adult 3X-Large</option>
+              <option value="adult-s">Small</option>
+              <option value="adult-m">Medium</option>
+              <option value="adult-l">Large</option>
+              <option value="adult-xl">X-Large</option>
+              <option value="adult-xxl">2X-Large</option>
             </select>
           </div>
 
@@ -485,12 +484,11 @@ export default function RegistrationForm() {
                       >
                         <option value="">Select size</option>
                         <optgroup label="Adult">
-                          <option value="adult-s">Adult S</option>
-                          <option value="adult-m">Adult M</option>
-                          <option value="adult-l">Adult L</option>
-                          <option value="adult-xl">Adult XL</option>
-                          <option value="adult-xxl">Adult XXL</option>
-                          <option value="adult-xxxl">Adult XXXL</option>
+                          <option value="adult-s">Small</option>
+                          <option value="adult-m">Medium</option>
+                          <option value="adult-l">Large</option>
+                          <option value="adult-xl">X-Large</option>
+                          <option value="adult-xxl">2X-Large</option>
                         </optgroup>
                         <optgroup label="Children">
                           <option value="child">Child - Ages 6-8 (46-54")</option>
@@ -590,12 +588,11 @@ export default function RegistrationForm() {
                     className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                   >
                     <option value="">Select size</option>
-                    <option value="adult-s">Adult Small</option>
-                    <option value="adult-m">Adult Medium</option>
-                    <option value="adult-l">Adult Large</option>
-                    <option value="adult-xl">Adult X-Large</option>
-                    <option value="adult-xxl">Adult 2X-Large</option>
-                    <option value="adult-xxxl">Adult 3X-Large</option>
+                    <option value="adult-s">Small</option>
+                    <option value="adult-m">Medium</option>
+                    <option value="adult-l">Large</option>
+                    <option value="adult-xl">X-Large</option>
+                    <option value="adult-xxl">2X-Large</option>
                   </select>
                 </div>
               </div>
