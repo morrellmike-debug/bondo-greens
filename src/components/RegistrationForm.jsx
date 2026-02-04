@@ -20,19 +20,36 @@ export default function RegistrationForm() {
     return emailRegex.test(email);
   };
 
-  // Phone validation (US format only: (XXX) XXX-XXXX or XXX-XXX-XXXX)
+  // Phone validation: extract digits and check for exactly 10
   const validatePhone = (phone) => {
     if (!phone) return true; // Phone is optional
-    const phoneRegex = /^(\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|([\d ]{10,}))$/;
-    // More strict: allows (XXX) XXX-XXXX, XXX-XXX-XXXX, XXXXXXXXXX (10 digits max)
-    return /^[\d\-\(\)\s]{12,14}$/.test(phone) && /\d{10}/.test(phone.replace(/\D/g, ''));
+    const digitsOnly = phone.replace(/\D/g, '');
+    return digitsOnly.length === 10; // Must have exactly 10 digits
+  };
+
+  // Clean phone to just digits for DB storage
+  const cleanPhone = (phone) => {
+    if (!phone) return '';
+    return phone.replace(/\D/g, ''); // Remove all non-digits
+  };
+
+  // Format phone for display: 5551234567 → (555) 123-4567
+  const formatPhoneForDisplay = (phone) => {
+    const digits = cleanPhone(phone);
+    if (digits.length !== 10) return digits;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Limit phone input to max 14 characters (to prevent too many digits)
-    if (name === 'phone' && value.length > 14) {
+    // For phone: only allow numbers, dashes, parentheses, periods
+    if (name === 'phone') {
+      const phoneCharsOnly = value.replace(/[^\d\-().\s]/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: phoneCharsOnly,
+      }));
       return;
     }
 
@@ -59,10 +76,13 @@ export default function RegistrationForm() {
     if (name === 'phone') {
       if (!value) {
         delete errors.phone;
-      } else if (!validatePhone(value)) {
-        errors.phone = 'Format: (XXX) XXX-XXXX or XXX-XXX-XXXX';
       } else {
-        delete errors.phone;
+        const digitsOnly = value.replace(/\D/g, '');
+        if (digitsOnly.length !== 10) {
+          errors.phone = `Must contain exactly 10 digits (found ${digitsOnly.length})`;
+        } else {
+          delete errors.phone;
+        }
       }
     }
     setValidationErrors(errors);
@@ -104,6 +124,14 @@ export default function RegistrationForm() {
   };
 
   const handleSubmit = () => {
+    // Clean phone to just digits before storing/submitting
+    const cleanedFormData = {
+      ...formData,
+      phone: cleanPhone(formData.phone), // Store as: 5551234567
+    };
+    
+    console.log('Submitting to DB:', cleanedFormData); // Phone will be just digits
+
     setSubmitted(true);
     setTimeout(() => {
       alert(`✓ Registration submitted!\nConfirmation sent to ${formData.email}`);
@@ -206,16 +234,15 @@ export default function RegistrationForm() {
               Phone <span className="text-xs text-gray-500">(optional)</span>
             </label>
             <input
-              type="tel"
+              type="text"
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              maxLength="14"
               className={`w-full border rounded px-3 py-2 ${
                 validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
-              placeholder="(555) 123-4567"
+              placeholder="(555) 123-4567 or 555-123-4567 or 5551234567"
             />
             {validationErrors.phone && (
               <p className="text-red-500 text-xs mt-1">❌ {validationErrors.phone}</p>
@@ -452,7 +479,7 @@ export default function RegistrationForm() {
               <div className="text-sm text-gray-600 space-y-1">
                 <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
                 <p><strong>Email:</strong> {formData.email}</p>
-                {formData.phone && <p><strong>Phone:</strong> {formData.phone}</p>}
+                {formData.phone && <p><strong>Phone:</strong> {formatPhoneForDisplay(formData.phone)}</p>}
               </div>
             </div>
 
