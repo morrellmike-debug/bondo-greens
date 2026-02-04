@@ -276,7 +276,7 @@ export default function RegistrationForm() {
 
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Shirt Size *
+              Shirt Size * <span className="text-xs text-gray-500">(Adult sizes)</span>
             </label>
             <select
               name="shirtSize"
