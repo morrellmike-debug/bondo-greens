@@ -494,9 +494,9 @@ export default function RegistrationForm() {
                           <option value="adult-xxxl">Adult XXXL</option>
                         </optgroup>
                         <optgroup label="Children">
-                          <option value="child">Child (8 and under)</option>
-                          <option value="toddler">Toddler</option>
-                          <option value="infant">Infant</option>
+                          <option value="child">Child - Ages 6-8 (46-54")</option>
+                          <option value="toddler">Toddler - Ages 2-5 (38-46")</option>
+                          <option value="infant">Infant - 0-24 months</option>
                         </optgroup>
                       </select>
                     </div>
@@ -591,19 +591,12 @@ export default function RegistrationForm() {
                     className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                   >
                     <option value="">Select size</option>
-                    <optgroup label="Adult">
-                      <option value="adult-s">Adult S</option>
-                      <option value="adult-m">Adult M</option>
-                      <option value="adult-l">Adult L</option>
-                      <option value="adult-xl">Adult XL</option>
-                      <option value="adult-xxl">Adult XXL</option>
-                      <option value="adult-xxxl">Adult XXXL</option>
-                    </optgroup>
-                    <optgroup label="Children">
-                      <option value="child">Child (8 and under)</option>
-                      <option value="toddler">Toddler</option>
-                      <option value="infant">Infant</option>
-                    </optgroup>
+                    <option value="adult-s">Adult Small</option>
+                    <option value="adult-m">Adult Medium</option>
+                    <option value="adult-l">Adult Large</option>
+                    <option value="adult-xl">Adult X-Large</option>
+                    <option value="adult-xxl">Adult 2X-Large</option>
+                    <option value="adult-xxxl">Adult 3X-Large</option>
                   </select>
                 </div>
               </div>
