@@ -813,20 +813,21 @@ export default function RegistrationForm() {
         </div>
       )}
 
-      {/* Success Message */}
-      {submitted && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 text-center">
-            <div className="text-4xl mb-4">✓</div>
-            <h3 className="text-xl font-bold mb-2 text-gray-800">
-              Registration Submitted!
-            </h3>
-            <p className="text-gray-600">
-              Confirmation email sent to {formData.email}
-            </p>
+        {/* Success Message */}
+        {submitted && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 text-center">
+              <div className="text-4xl mb-4">✓</div>
+              <h3 className="text-xl font-bold mb-2 text-gray-800">
+                Registration Submitted!
+              </h3>
+              <p className="text-gray-600">
+                Confirmation email sent to {formData.email}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
