@@ -135,7 +135,7 @@ export default function RegistrationForm() {
   const canProceed = () => {
     // Phone is optional but if entered must be valid
     const phoneValid = !formData.phone || (validatePhone(formData.phone) && !validationErrors.phone);
-    return formData.firstName && formData.lastName && formData.email && 
+    return formData.firstName && formData.lastName && formData.email && formData.shirtSize &&
            validateEmail(formData.email) && !validationErrors.email && phoneValid;
   };
 
@@ -157,9 +157,15 @@ export default function RegistrationForm() {
         lastName: '',
         email: '',
         phone: '',
+        shirtSize: '',
         eventType: '',
         numGuests: 0,
         guests: [],
+        hasPartner: false,
+        partnerName: '',
+        partnerEmail: '',
+        partnerPhone: '',
+        partnerShirtSize: '',
       });
       setValidationErrors({});
       setSubmitted(false);
@@ -279,19 +285,12 @@ export default function RegistrationForm() {
               className="w-full border border-gray-300 rounded px-3 py-2"
             >
               <option value="">Select size</option>
-              <optgroup label="Adult">
-                <option value="adult-s">Adult S</option>
-                <option value="adult-m">Adult M</option>
-                <option value="adult-l">Adult L</option>
-                <option value="adult-xl">Adult XL</option>
-                <option value="adult-xxl">Adult XXL</option>
-                <option value="adult-xxxl">Adult XXXL</option>
-              </optgroup>
-              <optgroup label="Children">
-                <option value="child">Child (8 and under)</option>
-                <option value="toddler">Toddler</option>
-                <option value="infant">Infant</option>
-              </optgroup>
+              <option value="adult-s">Adult Small</option>
+              <option value="adult-m">Adult Medium</option>
+              <option value="adult-l">Adult Large</option>
+              <option value="adult-xl">Adult X-Large</option>
+              <option value="adult-xxl">Adult 2X-Large</option>
+              <option value="adult-xxxl">Adult 3X-Large</option>
             </select>
           </div>
 
@@ -634,6 +633,7 @@ export default function RegistrationForm() {
                 <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
                 <p><strong>Email:</strong> {formData.email}</p>
                 {formData.phone && <p><strong>Phone:</strong> {formatPhoneForDisplay(formData.phone)}</p>}
+                {formData.shirtSize && <p><strong>Shirt Size:</strong> {formData.shirtSize}</p>}
               </div>
             </div>
 
