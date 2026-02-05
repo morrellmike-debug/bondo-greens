@@ -353,7 +353,7 @@ export default function RegistrationForm() {
         {step === 1 && (
           <div className="bg-white rounded-lg shadow p-5 sm:p-8">
             <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">
-              Your Information
+              Your Information [TEST BUILD - Feb 5]
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
