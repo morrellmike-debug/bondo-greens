@@ -15,6 +15,8 @@ export default function RegistrationForm() {
     partnerEmail: '',
     partnerPhone: '',
     partnerShirtSize: '', // optional
+    partnerEventType: '', // 'friday', 'saturday', 'both'
+    partnerDonation: 0, // optional donation
     // Guests for both
     registrantGuests: [],
     partnerGuests: [],
@@ -57,11 +59,26 @@ export default function RegistrationForm() {
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
   };
 
+  // Calculate event fee based on partner's selected event
+  const calculateEventFee = (eventType) => {
+    if (eventType === 'friday') return 0;
+    if (eventType === 'saturday') return 50;
+    if (eventType === 'both') return 50;
+    return 0;
+  };
+
+  // Calculate total due (event fee + donation)
+  const calculateTotalDue = () => {
+    const eventFee = calculateEventFee(formData.partnerEventType);
+    const donation = parseInt(formData.partnerDonation) || 0;
+    return eventFee + donation;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
     // For phone: only allow numbers, dashes, parentheses, periods, spaces
-    if (name === 'phone') {
+    if (name === 'phone' || name === 'partnerPhone') {
       const phoneCharsOnly = value.replace(/[^\d\-().\s]/g, '');
       // Check if there are more than 10 digits
       const digitsOnly = phoneCharsOnly.replace(/\D/g, '');
@@ -110,6 +127,34 @@ export default function RegistrationForm() {
         }
       }
     }
+
+    // Partner email validation
+    if (name === 'partnerEmail') {
+      if (!value) {
+        delete errors.partnerEmail;
+      } else if (!validateEmail(value)) {
+        errors.partnerEmail = 'Please enter a valid email address';
+      } else {
+        delete errors.partnerEmail;
+      }
+    }
+
+    // Partner phone validation
+    if (name === 'partnerPhone') {
+      if (!value) {
+        delete errors.partnerPhone;
+      } else {
+        const digitsOnly = value.replace(/\D/g, '');
+        if (digitsOnly.length < 10) {
+          errors.partnerPhone = `Phone number incomplete: ${digitsOnly.length}/10 digits`;
+        } else if (digitsOnly.length > 10) {
+          errors.partnerPhone = `Too many digits: ${digitsOnly.length}/10 digits`;
+        } else {
+          delete errors.partnerPhone;
+        }
+      }
+    }
+
     setValidationErrors(errors);
   };
 
@@ -255,6 +300,8 @@ export default function RegistrationForm() {
         partnerEmail: '',
         partnerPhone: '',
         partnerShirtSize: '',
+        partnerEventType: '',
+        partnerDonation: 0,
         registrantGuests: [],
         partnerGuests: [],
       });
@@ -522,13 +569,19 @@ export default function RegistrationForm() {
                         name="partnerEmail"
                         value={formData.partnerEmail}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded px-4 py-3 text-base"
+                        onBlur={handleBlur}
+                        className={`w-full border rounded px-4 py-3 text-base ${
+                          validationErrors.partnerEmail ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
                         placeholder="partner@example.com"
                       />
+                      {validationErrors.partnerEmail && (
+                        <p className="text-red-500 text-xs mt-1">❌ {validationErrors.partnerEmail}</p>
+                      )}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Partner Phone
@@ -538,9 +591,15 @@ export default function RegistrationForm() {
                         name="partnerPhone"
                         value={formData.partnerPhone}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded px-4 py-3 text-base"
+                        onBlur={handleBlur}
+                        className={`w-full border rounded px-4 py-3 text-base ${
+                          validationErrors.partnerPhone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
                         placeholder="(555) 123-4567"
                       />
+                      {validationErrors.partnerPhone && (
+                        <p className="text-red-500 text-xs mt-1">❌ {validationErrors.partnerPhone}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -562,6 +621,108 @@ export default function RegistrationForm() {
                       </select>
                     </div>
                   </div>
+
+                  {/* Partner Event Selection */}
+                  <div className="mb-6 pb-6 border-b">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Which events is your partner working? *
+                    </label>
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-white">
+                        <input
+                          type="radio"
+                          name="partnerEventType"
+                          value="friday"
+                          checked={formData.partnerEventType === 'friday'}
+                          onChange={handleInputChange}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <div className="font-medium text-gray-700">Friday only</div>
+                          <div className="text-xs text-gray-500">Free</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-white">
+                        <input
+                          type="radio"
+                          name="partnerEventType"
+                          value="saturday"
+                          checked={formData.partnerEventType === 'saturday'}
+                          onChange={handleInputChange}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <div className="font-medium text-gray-700">Saturday only</div>
+                          <div className="text-xs text-gray-500">$50</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-white">
+                        <input
+                          type="radio"
+                          name="partnerEventType"
+                          value="both"
+                          checked={formData.partnerEventType === 'both'}
+                          onChange={handleInputChange}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <div className="font-medium text-gray-700">Both days (Friday & Saturday)</div>
+                          <div className="text-xs text-gray-500">$50</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Event Fee Display */}
+                  {formData.partnerEventType && (
+                    <div className="mb-6 p-4 bg-white border-2 border-green-500 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700 font-medium">Event Fee</span>
+                        <span className="text-2xl font-bold text-green-700">
+                          ${calculateEventFee(formData.partnerEventType)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Optional Donation Section */}
+                  {formData.partnerEventType && (
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => {
+                          const donationSection = document.getElementById('donation-section');
+                          donationSection.classList.toggle('hidden');
+                        }}
+                        className="w-full text-left p-4 bg-white border border-gray-300 rounded hover:bg-gray-50 font-medium text-gray-700 flex justify-between items-center"
+                      >
+                        <span>+ Add Donation (Optional)</span>
+                        <span className="text-gray-400">▼</span>
+                      </button>
+                      
+                      <div id="donation-section" className="hidden p-4 bg-white border border-gray-300 rounded">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          Help Jeffersons reach their goal!
+                        </label>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <label className="block text-xs text-gray-600 mb-1">Donation amount</label>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg font-medium text-gray-700">$</span>
+                              <input
+                                type="number"
+                                name="partnerDonation"
+                                value={formData.partnerDonation}
+                                onChange={handleInputChange}
+                                className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
+                                placeholder="0"
+                                min="0"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -575,6 +736,8 @@ export default function RegistrationForm() {
                       partnerEmail: '',
                       partnerPhone: '',
                       partnerShirtSize: '',
+                      partnerEventType: '',
+                      partnerDonation: 0,
                     }));
                   }}
                   className="px-6 py-3 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 text-base font-medium"
@@ -786,6 +949,15 @@ export default function RegistrationForm() {
                   <p><strong>Email:</strong> {formData.partnerEmail}</p>
                   {formData.partnerPhone && <p><strong>Phone:</strong> {formatPhoneForDisplay(formData.partnerPhone)}</p>}
                   {formData.partnerShirtSize && <p><strong>Shirt Size:</strong> {formData.partnerShirtSize}</p>}
+                  {formData.partnerEventType && (
+                    <>
+                      <p><strong>Events:</strong> 
+                        {formData.partnerEventType === 'friday' && ' Friday only'}
+                        {formData.partnerEventType === 'saturday' && ' Saturday only'}
+                        {formData.partnerEventType === 'both' && ' Both days (Friday & Saturday)'}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -820,6 +992,29 @@ export default function RegistrationForm() {
                       ))}
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Amount Due Section */}
+            {formData.partnerName && formData.partnerEventType && (
+              <div className="border-2 border-green-500 rounded-lg p-4 bg-green-50">
+                <h3 className="font-semibold text-gray-700 mb-4">Amount Due</h3>
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm text-gray-700">
+                    <span>Event Fee ({formData.partnerName})</span>
+                    <span>${calculateEventFee(formData.partnerEventType)}</span>
+                  </div>
+                  {formData.partnerDonation > 0 && (
+                    <div className="flex justify-between text-sm text-gray-700">
+                      <span>Donation (Jeffersons)</span>
+                      <span>${formData.partnerDonation}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="border-t border-green-300 pt-3 flex justify-between text-lg font-bold text-green-700">
+                  <span>Total Due</span>
+                  <span>${calculateTotalDue()}</span>
                 </div>
               </div>
             )}
