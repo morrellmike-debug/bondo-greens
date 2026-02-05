@@ -975,7 +975,7 @@ export default function RegistrationForm() {
                 <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
                 <p><strong>Email:</strong> {formData.email}</p>
                 {formData.phone && <p><strong>Phone:</strong> {formatPhoneForDisplay(formData.phone)}</p>}
-                {formData.shirtSize && <p><strong>Shirt Size:</strong> {formData.shirtSize}</p>}
+                <p><strong>Shirt Size:</strong> {formData.shirtSize || 'None'}</p>
               </div>
             </div>
 
@@ -1007,7 +1007,7 @@ export default function RegistrationForm() {
                   <p><strong>Name:</strong> {formData.partnerName}</p>
                   <p><strong>Email:</strong> {formData.partnerEmail}</p>
                   {formData.partnerPhone && <p><strong>Phone:</strong> {formatPhoneForDisplay(formData.partnerPhone)}</p>}
-                  {formData.partnerShirtSize && <p><strong>Shirt Size:</strong> {formData.partnerShirtSize}</p>}
+                  <p><strong>Shirt Size:</strong> {formData.partnerShirtSize || 'None'}</p>
                   {formData.partnerEventType && (
                     <p><strong>Events:</strong> 
                       {formData.partnerEventType === 'saturday' && ' Saturday only'}
@@ -1021,33 +1021,43 @@ export default function RegistrationForm() {
             {(formData.registrantGuests.length > 0 || formData.partnerGuests.length > 0) && (
               <div className="border rounded-lg p-4 bg-gray-50">
                 <h3 className="font-semibold text-gray-700 mb-3">
-                  Guests & Meals ({totalMeals})
+                  Guests & Meals
                 </h3>
-                <div className="text-sm text-gray-600 space-y-3">
+                <div className="text-sm text-gray-600 space-y-4">
+                  {/* Registrant's guests */}
                   {formData.registrantGuests.length > 0 && (
-                    <div>
-                      <p className="font-medium text-gray-700 mb-2">{formData.firstName}'s Guests:</p>
-                      {formData.registrantGuests.map((guest, idx) => (
-                        <p key={`reg-${idx}`} className="ml-4">
-                          • {guest.name}
-                          {guest.category && ` (${guest.category.charAt(0).toUpperCase() + guest.category.slice(1)})`}
-                          {guest.shirtSize && ` - Shirt: ${guest.shirtSize}`}
-                        </p>
-                      ))}
+                    <div className="pb-3 border-b border-gray-300">
+                      <p className="font-medium text-gray-700 mb-2">{formData.firstName} {formData.lastName}'s Guests ({formData.registrantGuests.length}):</p>
+                      <div className="ml-4 space-y-1">
+                        {formData.registrantGuests.map((guest, idx) => (
+                          <p key={`reg-${idx}`}>
+                            • <strong>{guest.name}</strong>
+                            {guest.category && ` (${guest.category.charAt(0).toUpperCase() + guest.category.slice(1)})`}
+                            {guest.shirtSize && ` - Shirt: ${guest.shirtSize}`}
+                          </p>
+                        ))}
+                      </div>
                     </div>
                   )}
+                  
+                  {/* Partner's guests */}
                   {formData.partnerGuests.length > 0 && (
                     <div>
-                      <p className="font-medium text-gray-700 mb-2">{formData.partnerName}'s Guests:</p>
-                      {formData.partnerGuests.map((guest, idx) => (
-                        <p key={`partner-${idx}`} className="ml-4">
-                          • {guest.name}
-                          {guest.category && ` (${guest.category.charAt(0).toUpperCase() + guest.category.slice(1)})`}
-                          {guest.shirtSize && ` - Shirt: ${guest.shirtSize}`}
-                        </p>
-                      ))}
+                      <p className="font-medium text-gray-700 mb-2">{formData.partnerName}'s Guests ({formData.partnerGuests.length}):</p>
+                      <div className="ml-4 space-y-1">
+                        {formData.partnerGuests.map((guest, idx) => (
+                          <p key={`partner-${idx}`}>
+                            • <strong>{guest.name}</strong>
+                            {guest.category && ` (${guest.category.charAt(0).toUpperCase() + guest.category.slice(1)})`}
+                            {guest.shirtSize && ` - Shirt: ${guest.shirtSize}`}
+                          </p>
+                        ))}
+                      </div>
                     </div>
                   )}
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-300 text-sm font-medium text-gray-700">
+                  Total Meals: {totalMeals}
                 </div>
               </div>
             )}
@@ -1062,7 +1072,7 @@ export default function RegistrationForm() {
                   <div className="font-medium text-gray-700 mb-2">{formData.firstName} {formData.lastName}</div>
                   <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
                     <div className="flex justify-between">
-                      <span>Registration Fee</span>
+                      <span>Donation (Golf Event)</span>
                       <span>$0</span>
                     </div>
                   </div>
@@ -1077,12 +1087,12 @@ export default function RegistrationForm() {
                   <div className="font-medium text-gray-700 mb-2">{formData.partnerName}</div>
                   <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
                     <div className="flex justify-between">
-                      <span>Event Fee</span>
+                      <span>Donation (Golf Event)</span>
                       <span>${calculateEventFee(formData.partnerEventType)}</span>
                     </div>
                     {formData.partnerDonation > 0 && (
                       <div className="flex justify-between">
-                        <span>Donation (Jeffersons)</span>
+                        <span>Additional Donation (Jeffersons)</span>
                         <span>${formData.partnerDonation}</span>
                       </div>
                     )}
