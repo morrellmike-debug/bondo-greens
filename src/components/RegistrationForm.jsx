@@ -452,14 +452,14 @@ export default function RegistrationForm() {
               </select>
             </div>
 
-            {/* Golf Event Donation Section - only show if Saturday or Both */}
-            {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
-              <div className="mb-6 border rounded-lg p-5 sm:p-6 bg-blue-50">
-                <h3 className="font-semibold text-gray-700 mb-4 text-base">
-                  Your Donation
-                </h3>
-                
-                {/* Base Donation Display */}
+            {/* Golf Event Donation Section */}
+            <div className="mb-6 border rounded-lg p-5 sm:p-6 bg-blue-50">
+              <h3 className="font-semibold text-gray-700 mb-4 text-base">
+                Your Donation
+              </h3>
+              
+              {/* Base Donation Display - only for Saturday/Both */}
+              {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
                 <div className="mb-6 p-4 bg-white border-2 border-green-500 rounded-lg">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-700 font-medium">Golf Event Donation</span>
@@ -467,29 +467,29 @@ export default function RegistrationForm() {
                   </div>
                   <p className="text-xs text-gray-500 mt-2">Included with your registration</p>
                 </div>
+              )}
 
-                {/* Additional Donation */}
-                <div className="p-4 bg-white border border-gray-300 rounded-lg">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Additional Donation (Optional)
-                  </label>
-                  <p className="text-xs text-gray-600 mb-3">Help Jeffersons reach their goal!</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-medium text-gray-700">$</span>
-                    <input
-                      type="number"
-                      name="registrantDonation"
-                      value={formData.registrantDonation}
-                      onChange={handleInputChange}
-                      className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
-                      placeholder="0"
-                      min="0"
-                    />
-                    <span className="text-xs text-gray-500">(leave blank if not donating)</span>
-                  </div>
+              {/* Additional Donation */}
+              <div className="p-4 bg-white border border-gray-300 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Additional Donation (Optional)
+                </label>
+                <p className="text-xs text-gray-600 mb-3">Help Jeffersons reach their goal!</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-medium text-gray-700">$</span>
+                  <input
+                    type="number"
+                    name="registrantDonation"
+                    value={formData.registrantDonation}
+                    onChange={handleInputChange}
+                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
+                    placeholder="0"
+                    min="0"
+                  />
+                  <span className="text-xs text-gray-500">(leave blank if not donating)</span>
                 </div>
               </div>
-            )}
+            </div>
 
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
               <button
