@@ -161,18 +161,26 @@ export default function RegistrationForm() {
   };
 
   const handleEventSelect = (eventType) => {
-    setFormData(prev => ({
-      ...prev,
-      eventType: eventType,
-    }));
     setShowEventButtons(false);
+    
     // Auto-advance for Friday/Non-golfer (no partner needed)
     if (eventType === 'friday' || eventType === 'non-golfer') {
+      setFormData(prev => ({ ...prev, eventType: eventType }));
       setTimeout(() => setStep(3), 100);
     }
-    // For Saturday/Both, show partner decision screen
-    if (eventType === 'saturday' || eventType === 'both') {
+    // For Saturday only, show partner decision screen
+    else if (eventType === 'saturday') {
+      setFormData(prev => ({ ...prev, eventType: eventType }));
       setShowPartnerDecision(true);
+    }
+    // For Both, go straight to partner form (partner required, no decision needed)
+    else if (eventType === 'both') {
+      setFormData(prev => ({
+        ...prev,
+        eventType: eventType,
+        partnerSelection: 'partner', // Auto-set since partner is required for Both
+      }));
+      setShowPartnerDecision(false);
     }
   };
 
@@ -612,8 +620,8 @@ export default function RegistrationForm() {
             </>
           ) : (
             <>
-              {/* Partner Info for Saturday/Both (if partner selected) */}
-              {formData.partnerSelection === 'partner' && (formData.eventType === 'saturday' || formData.eventType === 'both') && (
+              {/* Partner Info for Saturday (if partner selected) or Both (automatic) */}
+              {((formData.partnerSelection === 'partner' && formData.eventType === 'saturday') || formData.eventType === 'both') && (
                 <div className="mb-6 sm:mb-8 border rounded-lg p-5 sm:p-6 bg-blue-50">
                   <h3 className="font-semibold text-gray-700 mb-4 text-base">
                     2-Man Scramble Partner Information
@@ -995,10 +1003,15 @@ export default function RegistrationForm() {
                 {formData.eventType === 'both' && 'Both Events (Friday & Saturday)'}
                 {formData.eventType === 'non-golfer' && 'Non-Golfer / Awards Ceremony'}
               </div>
-              {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
+              {formData.eventType === 'saturday' && (
                 <div className="text-sm text-gray-700 font-medium">
                   {formData.partnerSelection === 'partner' && '✓ I have a partner'}
                   {formData.partnerSelection === 'team-assign' && '✓ Needs team assignment'}
+                </div>
+              )}
+              {formData.eventType === 'both' && (
+                <div className="text-sm text-gray-700 font-medium">
+                  ✓ Partner required (Both events)
                 </div>
               )}
             </div>
