@@ -751,39 +751,23 @@ export default function RegistrationForm() {
 
                   {/* Optional Donation Section */}
                   {formData.partnerEventType && (
-                    <div className="space-y-3">
-                      <button
-                        onClick={() => {
-                          const donationSection = document.getElementById('donation-section');
-                          donationSection.classList.toggle('hidden');
-                        }}
-                        className="w-full text-left p-4 bg-white border border-gray-300 rounded hover:bg-gray-50 font-medium text-gray-700 flex justify-between items-center"
-                      >
-                        <span>+ Add Donation (Optional)</span>
-                        <span className="text-gray-400">▼</span>
-                      </button>
-                      
-                      <div id="donation-section" className="hidden p-4 bg-white border border-gray-300 rounded">
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                          Help Jeffersons reach their goal!
-                        </label>
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <label className="block text-xs text-gray-600 mb-1">Donation amount</label>
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg font-medium text-gray-700">$</span>
-                              <input
-                                type="number"
-                                name="partnerDonation"
-                                value={formData.partnerDonation}
-                                onChange={handleInputChange}
-                                className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
-                                placeholder="0"
-                                min="0"
-                              />
-                            </div>
-                          </div>
-                        </div>
+                    <div className="p-4 bg-white border border-gray-300 rounded">
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Additional Donation (Optional)
+                      </label>
+                      <p className="text-xs text-gray-600 mb-3">Help Jeffersons reach their goal!</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-medium text-gray-700">$</span>
+                        <input
+                          type="number"
+                          name="partnerDonation"
+                          value={formData.partnerDonation}
+                          onChange={handleInputChange}
+                          className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
+                          placeholder="0"
+                          min="0"
+                        />
+                        <span className="text-xs text-gray-500">(leave blank if not donating)</span>
                       </div>
                     </div>
                   )}
@@ -1068,25 +1052,51 @@ export default function RegistrationForm() {
               </div>
             )}
 
-            {/* Amount Due Section */}
+            {/* Amount Due Section - Itemized by Person */}
             {formData.partnerName && formData.partnerEventType && (
               <div className="border-2 border-green-500 rounded-lg p-4 bg-green-50">
-                <h3 className="font-semibold text-gray-700 mb-4">Amount Due</h3>
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm text-gray-700">
-                    <span>Event Fee ({formData.partnerName})</span>
-                    <span>${calculateEventFee(formData.partnerEventType)}</span>
-                  </div>
-                  {formData.partnerDonation > 0 && (
-                    <div className="flex justify-between text-sm text-gray-700">
-                      <span>Donation (Jeffersons)</span>
-                      <span>${formData.partnerDonation}</span>
+                <h3 className="font-semibold text-gray-700 mb-4">Amount Due - Itemized</h3>
+                
+                {/* Registrant section */}
+                <div className="mb-4 pb-4 border-b border-green-300">
+                  <div className="font-medium text-gray-700 mb-2">{formData.firstName} {formData.lastName}</div>
+                  <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
+                    <div className="flex justify-between">
+                      <span>Registration Fee</span>
+                      <span>$0</span>
                     </div>
-                  )}
+                  </div>
+                  <div className="ml-4 flex justify-between text-sm font-medium text-green-700">
+                    <span>Subtotal</span>
+                    <span>$0</span>
+                  </div>
                 </div>
-                <div className="border-t border-green-300 pt-3 flex justify-between text-lg font-bold text-green-700">
-                  <span>Total Due</span>
-                  <span>${calculateTotalDue()}</span>
+
+                {/* Partner section */}
+                <div className="mb-4">
+                  <div className="font-medium text-gray-700 mb-2">{formData.partnerName}</div>
+                  <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
+                    <div className="flex justify-between">
+                      <span>Event Fee</span>
+                      <span>${calculateEventFee(formData.partnerEventType)}</span>
+                    </div>
+                    {formData.partnerDonation > 0 && (
+                      <div className="flex justify-between">
+                        <span>Donation (Jeffersons)</span>
+                        <span>${formData.partnerDonation}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="ml-4 flex justify-between text-sm font-medium text-green-700">
+                    <span>Subtotal</span>
+                    <span>${calculateEventFee(formData.partnerEventType) + (formData.partnerDonation > 0 ? parseInt(formData.partnerDonation) : 0)}</span>
+                  </div>
+                </div>
+
+                {/* Grand total */}
+                <div className="pt-3 border-t-2 border-green-500 flex justify-between text-lg font-bold text-green-700">
+                  <span>GRAND TOTAL</span>
+                  <span>${calculateEventFee(formData.partnerEventType) + (formData.partnerDonation > 0 ? parseInt(formData.partnerDonation) : 0)}</span>
                 </div>
               </div>
             )}
