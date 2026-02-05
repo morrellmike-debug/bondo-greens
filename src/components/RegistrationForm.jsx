@@ -746,7 +746,7 @@ export default function RegistrationForm() {
 
                   {/* Partner Event Selection */}
                   <div className="mb-6 pb-6 border-b">
-                    <p className="text-sm text-gray-600 mb-4">Which events is your partner working? *</p>
+                    <p className="text-sm text-gray-600 mb-4">Which event(s) is your partner attending? *</p>
                     <div className="space-y-3">
                       <button
                         onClick={() => setFormData(prev => ({ ...prev, partnerEventType: 'saturday' }))}
