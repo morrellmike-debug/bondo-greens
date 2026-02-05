@@ -454,9 +454,9 @@ export default function RegistrationForm() {
 
             {/* Donation Section */}
             <div className="mb-6 border rounded-lg p-5 sm:p-6 bg-blue-50 space-y-3">
-              {/* Donation - Fixed $50 */}
+              {/* Golf Event Donation - Fixed $50 */}
               <div className="p-4 bg-white rounded border-l-4 border-green-700 flex justify-between items-center">
-                <span className="font-medium text-gray-700">Donation</span>
+                <span className="font-medium text-gray-700">Golf Event Donation</span>
                 <span className="text-lg font-bold text-green-700">$50</span>
               </div>
 
@@ -762,11 +762,11 @@ export default function RegistrationForm() {
                     </div>
                   </div>
 
-                  {/* Donation Amount Display */}
+                  {/* Golf Event Donation Display */}
                   {formData.partnerEventType && (
                     <div className="mb-6 p-4 bg-white border-2 border-green-500 rounded-lg">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-700 font-medium">Donation Amount</span>
+                        <span className="text-gray-700 font-medium">Golf Event Donation</span>
                         <span className="text-2xl font-bold text-green-700">
                           ${calculateEventFee(formData.partnerEventType)}
                         </span>
@@ -1101,7 +1101,7 @@ export default function RegistrationForm() {
                   <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
                     {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
                       <div className="flex justify-between">
-                        <span>Donation Amount</span>
+                        <span>Golf Event Donation</span>
                         <span>$50</span>
                       </div>
                     )}
@@ -1127,7 +1127,7 @@ export default function RegistrationForm() {
                     <div className="font-medium text-gray-700 mb-2">{formData.partnerName}</div>
                     <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
                       <div className="flex justify-between">
-                        <span>Donation Amount</span>
+                        <span>Golf Event Donation</span>
                         <span>${calculateEventFee(formData.partnerEventType)}</span>
                       </div>
                       {formData.partnerDonation > 0 && (
