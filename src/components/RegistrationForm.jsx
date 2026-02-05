@@ -452,25 +452,34 @@ export default function RegistrationForm() {
               </select>
             </div>
 
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Additional Donation (Optional)
-              </label>
-              <p className="text-xs text-gray-600 mb-3">Help Jeffersons reach their goal!</p>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-medium text-gray-700">$</span>
-                <input
-                  type="number"
-                  name="registrantDonation"
-                  value={formData.registrantDonation}
-                  onChange={handleInputChange}
-                  className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
-                  placeholder="0"
-                  min="0"
-                />
-                <span className="text-xs text-gray-500">(leave blank if not donating)</span>
+            {/* Golf Event Donation Section - only show if Saturday or Both */}
+            {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mb-4 pb-4 border-b border-blue-200">
+                  <h4 className="font-medium text-gray-700 mb-2">Golf Event Donation</h4>
+                  <div className="text-sm text-gray-600">
+                    <p className="font-semibold text-gray-700 text-lg">$50</p>
+                    <p className="text-xs text-gray-500 mt-1">Included with your registration</p>
+                  </div>
+                </div>
+                
+                <h4 className="font-medium text-gray-700 mb-2">Additional Donation (Optional)</h4>
+                <p className="text-xs text-gray-600 mb-3">Help Jeffersons reach their goal!</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-medium text-gray-700">$</span>
+                  <input
+                    type="number"
+                    name="registrantDonation"
+                    value={formData.registrantDonation}
+                    onChange={handleInputChange}
+                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
+                    placeholder="0"
+                    min="0"
+                  />
+                  <span className="text-xs text-gray-500">(leave blank if not donating)</span>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
               <button
@@ -1089,7 +1098,7 @@ export default function RegistrationForm() {
             )}
 
             {/* Amount Due Section - Itemized by Person */}
-            {(formData.partnerName && formData.partnerEventType) || (formData.registrantDonation > 0) ? (
+            {(formData.eventType === 'saturday' || formData.eventType === 'both' || formData.registrantDonation > 0 || (formData.partnerName && formData.partnerEventType)) ? (
               <div className="border-2 border-green-500 rounded-lg p-4 bg-green-50">
                 <h3 className="font-semibold text-gray-700 mb-4">Amount Due - Itemized</h3>
                 
@@ -1097,6 +1106,12 @@ export default function RegistrationForm() {
                 <div className="mb-4 pb-4 border-b border-green-300">
                   <div className="font-medium text-gray-700 mb-2">{formData.firstName} {formData.lastName}</div>
                   <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
+                    {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
+                      <div className="flex justify-between">
+                        <span>Golf Event Donation</span>
+                        <span>$50</span>
+                      </div>
+                    )}
                     {formData.registrantDonation > 0 && (
                       <div className="flex justify-between">
                         <span>Additional Donation (Jeffersons)</span>
@@ -1106,7 +1121,10 @@ export default function RegistrationForm() {
                   </div>
                   <div className="ml-4 flex justify-between text-sm font-medium text-green-700">
                     <span>Subtotal</span>
-                    <span>${formData.registrantDonation > 0 ? parseInt(formData.registrantDonation) : 0}</span>
+                    <span>${
+                      ((formData.eventType === 'saturday' || formData.eventType === 'both') ? 50 : 0) +
+                      (formData.registrantDonation > 0 ? parseInt(formData.registrantDonation) : 0)
+                    }</span>
                   </div>
                 </div>
 
@@ -1137,6 +1155,7 @@ export default function RegistrationForm() {
                 <div className="pt-3 border-t-2 border-green-500 flex justify-between text-lg font-bold text-green-700">
                   <span>GRAND TOTAL</span>
                   <span>${
+                    ((formData.eventType === 'saturday' || formData.eventType === 'both') ? 50 : 0) +
                     (formData.registrantDonation > 0 ? parseInt(formData.registrantDonation) : 0) +
                     (formData.partnerName && formData.partnerEventType ? calculateEventFee(formData.partnerEventType) + (formData.partnerDonation > 0 ? parseInt(formData.partnerDonation) : 0) : 0)
                   }</span>
