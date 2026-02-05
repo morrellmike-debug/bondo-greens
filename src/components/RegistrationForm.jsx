@@ -10,6 +10,7 @@ export default function RegistrationForm() {
     phone: '',
     shirtSize: '', // optional
     eventType: '', // 'friday', 'saturday', 'both', or 'non-golfer'
+    registrantDonation: 0, // optional donation for Jeffersons
     // Partner decision (if Saturday/Both)
     partnerSelection: '', // 'partner' or 'team-assign'
     // Partner (if partnerSelection === 'partner')
@@ -18,7 +19,7 @@ export default function RegistrationForm() {
     partnerPhone: '',
     partnerShirtSize: '', // optional
     partnerEventType: '', // 'saturday', 'both'
-    partnerDonation: 0, // optional donation
+    partnerDonation: 0, // optional donation for Jeffersons
     // Guests for both
     registrantGuests: [],
     partnerGuests: [],
@@ -310,6 +311,7 @@ export default function RegistrationForm() {
         phone: '',
         shirtSize: '',
         eventType: '',
+        registrantDonation: 0,
         partnerSelection: '',
         partnerName: '',
         partnerEmail: '',
@@ -448,6 +450,26 @@ export default function RegistrationForm() {
                 <option value="adult-xl">X-Large</option>
                 <option value="adult-xxl">2X-Large</option>
               </select>
+            </div>
+
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Additional Donation (Optional)
+              </label>
+              <p className="text-xs text-gray-600 mb-3">Help Jeffersons reach their goal!</p>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-medium text-gray-700">$</span>
+                <input
+                  type="number"
+                  name="registrantDonation"
+                  value={formData.registrantDonation}
+                  onChange={handleInputChange}
+                  className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
+                  placeholder="0"
+                  min="0"
+                />
+                <span className="text-xs text-gray-500">(leave blank if not donating)</span>
+              </div>
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
@@ -777,7 +799,11 @@ export default function RegistrationForm() {
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
                 <button
                   onClick={() => {
-                    setShowPartnerDecision(true);
+                    if (formData.eventType === 'saturday') {
+                      setShowPartnerDecision(true);
+                    } else {
+                      setShowEventButtons(true);
+                    }
                     setFormData(prev => ({ 
                       ...prev, 
                       partnerName: '',
@@ -1063,7 +1089,7 @@ export default function RegistrationForm() {
             )}
 
             {/* Amount Due Section - Itemized by Person */}
-            {formData.partnerName && formData.partnerEventType && (
+            {(formData.partnerName && formData.partnerEventType) || (formData.registrantDonation > 0) ? (
               <div className="border-2 border-green-500 rounded-lg p-4 bg-green-50">
                 <h3 className="font-semibold text-gray-700 mb-4">Amount Due - Itemized</h3>
                 
@@ -1071,45 +1097,52 @@ export default function RegistrationForm() {
                 <div className="mb-4 pb-4 border-b border-green-300">
                   <div className="font-medium text-gray-700 mb-2">{formData.firstName} {formData.lastName}</div>
                   <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
-                    <div className="flex justify-between">
-                      <span>Donation (Golf Event)</span>
-                      <span>$0</span>
-                    </div>
-                  </div>
-                  <div className="ml-4 flex justify-between text-sm font-medium text-green-700">
-                    <span>Subtotal</span>
-                    <span>$0</span>
-                  </div>
-                </div>
-
-                {/* Partner section */}
-                <div className="mb-4">
-                  <div className="font-medium text-gray-700 mb-2">{formData.partnerName}</div>
-                  <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
-                    <div className="flex justify-between">
-                      <span>Donation (Golf Event)</span>
-                      <span>${calculateEventFee(formData.partnerEventType)}</span>
-                    </div>
-                    {formData.partnerDonation > 0 && (
+                    {formData.registrantDonation > 0 && (
                       <div className="flex justify-between">
                         <span>Additional Donation (Jeffersons)</span>
-                        <span>${formData.partnerDonation}</span>
+                        <span>${formData.registrantDonation}</span>
                       </div>
                     )}
                   </div>
                   <div className="ml-4 flex justify-between text-sm font-medium text-green-700">
                     <span>Subtotal</span>
-                    <span>${calculateEventFee(formData.partnerEventType) + (formData.partnerDonation > 0 ? parseInt(formData.partnerDonation) : 0)}</span>
+                    <span>${formData.registrantDonation > 0 ? parseInt(formData.registrantDonation) : 0}</span>
                   </div>
                 </div>
+
+                {/* Partner section (if applicable) */}
+                {formData.partnerName && formData.partnerEventType && (
+                  <div className="mb-4">
+                    <div className="font-medium text-gray-700 mb-2">{formData.partnerName}</div>
+                    <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
+                      <div className="flex justify-between">
+                        <span>Donation (Golf Event)</span>
+                        <span>${calculateEventFee(formData.partnerEventType)}</span>
+                      </div>
+                      {formData.partnerDonation > 0 && (
+                        <div className="flex justify-between">
+                          <span>Additional Donation (Jeffersons)</span>
+                          <span>${formData.partnerDonation}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-4 flex justify-between text-sm font-medium text-green-700">
+                      <span>Subtotal</span>
+                      <span>${calculateEventFee(formData.partnerEventType) + (formData.partnerDonation > 0 ? parseInt(formData.partnerDonation) : 0)}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Grand total */}
                 <div className="pt-3 border-t-2 border-green-500 flex justify-between text-lg font-bold text-green-700">
                   <span>GRAND TOTAL</span>
-                  <span>${calculateEventFee(formData.partnerEventType) + (formData.partnerDonation > 0 ? parseInt(formData.partnerDonation) : 0)}</span>
+                  <span>${
+                    (formData.registrantDonation > 0 ? parseInt(formData.registrantDonation) : 0) +
+                    (formData.partnerName && formData.partnerEventType ? calculateEventFee(formData.partnerEventType) + (formData.partnerDonation > 0 ? parseInt(formData.partnerDonation) : 0) : 0)
+                  }</span>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
 
           <div className="flex justify-between">
