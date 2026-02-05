@@ -454,9 +454,9 @@ export default function RegistrationForm() {
 
             {/* Donation Section */}
             <div className="mb-6 border rounded-lg p-5 sm:p-6 bg-blue-50 space-y-3">
-              {/* Golf Event Donation - Fixed $50 */}
+              {/* Donation - Fixed $50 */}
               <div className="p-4 bg-white rounded border-l-4 border-green-700 flex justify-between items-center">
-                <span className="font-medium text-gray-700">Golf Event Donation</span>
+                <span className="font-medium text-gray-700">Donation</span>
                 <span className="text-lg font-bold text-green-700">$50</span>
               </div>
 
