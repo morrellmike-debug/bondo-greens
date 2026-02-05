@@ -454,29 +454,39 @@ export default function RegistrationForm() {
 
             {/* Golf Event Donation Section - only show if Saturday or Both */}
             {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
-              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="mb-4 pb-4 border-b border-blue-200">
-                  <h4 className="font-medium text-gray-700 mb-2">Golf Event Donation</h4>
-                  <div className="text-sm text-gray-600">
-                    <p className="font-semibold text-gray-700 text-lg">$50</p>
-                    <p className="text-xs text-gray-500 mt-1">Included with your registration</p>
-                  </div>
-                </div>
+              <div className="mb-6 border rounded-lg p-5 sm:p-6 bg-blue-50">
+                <h3 className="font-semibold text-gray-700 mb-4 text-base">
+                  Your Donation
+                </h3>
                 
-                <h4 className="font-medium text-gray-700 mb-2">Additional Donation (Optional)</h4>
-                <p className="text-xs text-gray-600 mb-3">Help Jeffersons reach their goal!</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-medium text-gray-700">$</span>
-                  <input
-                    type="number"
-                    name="registrantDonation"
-                    value={formData.registrantDonation}
-                    onChange={handleInputChange}
-                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
-                    placeholder="0"
-                    min="0"
-                  />
-                  <span className="text-xs text-gray-500">(leave blank if not donating)</span>
+                {/* Base Donation Display */}
+                <div className="mb-6 p-4 bg-white border-2 border-green-500 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">Golf Event Donation</span>
+                    <span className="text-2xl font-bold text-green-700">$50</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Included with your registration</p>
+                </div>
+
+                {/* Additional Donation */}
+                <div className="p-4 bg-white border border-gray-300 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Additional Donation (Optional)
+                  </label>
+                  <p className="text-xs text-gray-600 mb-3">Help Jeffersons reach their goal!</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-medium text-gray-700">$</span>
+                    <input
+                      type="number"
+                      name="registrantDonation"
+                      value={formData.registrantDonation}
+                      onChange={handleInputChange}
+                      className="flex-1 border border-gray-300 rounded px-3 py-2 text-base"
+                      placeholder="0"
+                      min="0"
+                    />
+                    <span className="text-xs text-gray-500">(leave blank if not donating)</span>
+                  </div>
                 </div>
               </div>
             )}
