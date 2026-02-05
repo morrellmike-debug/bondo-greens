@@ -10,12 +10,14 @@ export default function RegistrationForm() {
     phone: '',
     shirtSize: '', // optional
     eventType: '', // 'friday', 'saturday', 'both', or 'non-golfer'
-    // Partner (if Saturday/Both)
+    // Partner decision (if Saturday/Both)
+    partnerSelection: '', // 'partner' or 'team-assign'
+    // Partner (if partnerSelection === 'partner')
     partnerName: '',
     partnerEmail: '',
     partnerPhone: '',
     partnerShirtSize: '', // optional
-    partnerEventType: '', // 'friday', 'saturday', 'both'
+    partnerEventType: '', // 'saturday', 'both'
     partnerDonation: 0, // optional donation
     // Guests for both
     registrantGuests: [],
@@ -25,6 +27,7 @@ export default function RegistrationForm() {
   const [submitted, setSubmitted] = useState(false);
   const [guestOwner, setGuestOwner] = useState('registrant'); // 'registrant' or 'partner'
   const [showEventButtons, setShowEventButtons] = useState(true); // Control which view on Step 2
+  const [showPartnerDecision, setShowPartnerDecision] = useState(false); // Show partner decision screen
 
   // When step changes to 2, ensure showEventButtons reflects current eventType
   useEffect(() => {
@@ -167,6 +170,10 @@ export default function RegistrationForm() {
     if (eventType === 'friday' || eventType === 'non-golfer') {
       setTimeout(() => setStep(3), 100);
     }
+    // For Saturday/Both, show partner decision screen
+    if (eventType === 'saturday' || eventType === 'both') {
+      setShowPartnerDecision(true);
+    }
   };
 
   const shirtSizesByCategory = {
@@ -295,6 +302,7 @@ export default function RegistrationForm() {
         phone: '',
         shirtSize: '',
         eventType: '',
+        partnerSelection: '',
         partnerName: '',
         partnerEmail: '',
         partnerPhone: '',
@@ -308,6 +316,7 @@ export default function RegistrationForm() {
       setSubmitted(false);
       setGuestOwner('registrant');
       setShowEventButtons(true);
+      setShowPartnerDecision(false);
     }, 500);
   };
 
@@ -536,10 +545,75 @@ export default function RegistrationForm() {
             </button>
           </div>
             </>
+          ) : showPartnerDecision ? (
+            <>
+              {/* Partner Decision Screen */}
+              <div className="bg-white rounded-lg shadow p-5 sm:p-8">
+                <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">
+                  2-Man Scramble Partner
+                </h2>
+                <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
+                  Do you have a partner for the 2-man scramble?
+                </p>
+
+                <div className="space-y-3 mb-8">
+                  <button
+                    onClick={() => setFormData(prev => ({ ...prev, partnerSelection: 'partner' }))}
+                    className={`w-full p-4 sm:p-6 text-left border-2 rounded-lg transition ${
+                      formData.partnerSelection === 'partner'
+                        ? 'border-green-700 bg-green-50'
+                        : 'border-gray-300 hover:border-green-700'
+                    }`}
+                    type="button"
+                  >
+                    <div className="font-semibold text-gray-800 text-base">Yes - I have a partner</div>
+                    <div className="text-xs sm:text-sm text-gray-600 mt-1">Enter my partner's information</div>
+                  </button>
+
+                  <button
+                    onClick={() => setFormData(prev => ({ ...prev, partnerSelection: 'team-assign' }))}
+                    className={`w-full p-4 sm:p-6 text-left border-2 rounded-lg transition ${
+                      formData.partnerSelection === 'team-assign'
+                        ? 'border-green-700 bg-green-50'
+                        : 'border-gray-300 hover:border-green-700'
+                    }`}
+                    type="button"
+                  >
+                    <div className="font-semibold text-gray-800 text-base">No - Assign me to a team</div>
+                    <div className="text-xs sm:text-sm text-gray-600 mt-1">Let Jim assign me to a team</div>
+                  </button>
+                </div>
+
+                <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
+                  <button
+                    onClick={() => {
+                      setShowPartnerDecision(false);
+                      setFormData(prev => ({ ...prev, eventType: '', partnerSelection: '' }));
+                    }}
+                    className="px-6 py-3 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 text-base font-medium"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (formData.partnerSelection === 'partner') {
+                        setShowPartnerDecision(false);
+                      } else if (formData.partnerSelection === 'team-assign') {
+                        setStep(3);
+                      }
+                    }}
+                    disabled={!formData.partnerSelection}
+                    className="px-6 py-3 bg-green-700 text-white rounded hover:bg-green-800 disabled:opacity-50 text-base font-medium"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </>
           ) : (
             <>
-              {/* Partner Info for Saturday/Both */}
-              {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
+              {/* Partner Info for Saturday/Both (if partner selected) */}
+              {formData.partnerSelection === 'partner' && (formData.eventType === 'saturday' || formData.eventType === 'both') && (
                 <div className="mb-6 sm:mb-8 border rounded-lg p-5 sm:p-6 bg-blue-50">
                   <h3 className="font-semibold text-gray-700 mb-4 text-base">
                     2-Man Scramble Partner Information
@@ -711,9 +785,9 @@ export default function RegistrationForm() {
               <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
                 <button
                   onClick={() => {
+                    setShowPartnerDecision(true);
                     setFormData(prev => ({ 
                       ...prev, 
-                      eventType: '',
                       partnerName: '',
                       partnerEmail: '',
                       partnerPhone: '',
@@ -915,12 +989,18 @@ export default function RegistrationForm() {
 
             <div className="border rounded-lg p-4 bg-gray-50">
               <h3 className="font-semibold text-gray-700 mb-2">Event</h3>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 mb-3">
                 {formData.eventType === 'friday' && 'Friday Night Golf'}
                 {formData.eventType === 'saturday' && 'Saturday Championship'}
                 {formData.eventType === 'both' && 'Both Events (Friday & Saturday)'}
                 {formData.eventType === 'non-golfer' && 'Non-Golfer / Awards Ceremony'}
               </div>
+              {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
+                <div className="text-sm text-gray-700 font-medium">
+                  {formData.partnerSelection === 'partner' && '✓ I have a partner'}
+                  {formData.partnerSelection === 'team-assign' && '✓ Needs team assignment'}
+                </div>
+              )}
             </div>
 
             {formData.partnerName && (
