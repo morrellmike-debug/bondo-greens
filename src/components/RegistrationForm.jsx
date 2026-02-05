@@ -61,7 +61,6 @@ export default function RegistrationForm() {
 
   // Calculate event fee based on partner's selected event
   const calculateEventFee = (eventType) => {
-    if (eventType === 'friday') return 0;
     if (eventType === 'saturday') return 50;
     if (eventType === 'both') return 50;
     return 0;
@@ -139,7 +138,7 @@ export default function RegistrationForm() {
       }
     }
 
-    // Partner phone validation
+    // Partner phone validation (optional but if filled must be valid)
     if (name === 'partnerPhone') {
       if (!value) {
         delete errors.partnerPhone;
@@ -624,52 +623,35 @@ export default function RegistrationForm() {
 
                   {/* Partner Event Selection */}
                   <div className="mb-6 pb-6 border-b">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Which events is your partner working? *
-                    </label>
+                    <p className="text-sm text-gray-600 mb-4">Which events is your partner working? *</p>
                     <div className="space-y-3">
-                      <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-white">
-                        <input
-                          type="radio"
-                          name="partnerEventType"
-                          value="friday"
-                          checked={formData.partnerEventType === 'friday'}
-                          onChange={handleInputChange}
-                          className="w-4 h-4"
-                        />
-                        <div>
-                          <div className="font-medium text-gray-700">Friday only</div>
-                          <div className="text-xs text-gray-500">Free</div>
-                        </div>
-                      </label>
-                      <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-white">
-                        <input
-                          type="radio"
-                          name="partnerEventType"
-                          value="saturday"
-                          checked={formData.partnerEventType === 'saturday'}
-                          onChange={handleInputChange}
-                          className="w-4 h-4"
-                        />
-                        <div>
-                          <div className="font-medium text-gray-700">Saturday only</div>
-                          <div className="text-xs text-gray-500">$50</div>
-                        </div>
-                      </label>
-                      <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-white">
-                        <input
-                          type="radio"
-                          name="partnerEventType"
-                          value="both"
-                          checked={formData.partnerEventType === 'both'}
-                          onChange={handleInputChange}
-                          className="w-4 h-4"
-                        />
-                        <div>
-                          <div className="font-medium text-gray-700">Both days (Friday & Saturday)</div>
-                          <div className="text-xs text-gray-500">$50</div>
-                        </div>
-                      </label>
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, partnerEventType: 'saturday' }))}
+                        className={`w-full p-4 sm:p-6 text-left border-2 rounded-lg transition ${
+                          formData.partnerEventType === 'saturday'
+                            ? 'border-green-700 bg-green-50'
+                            : 'border-gray-300 hover:border-green-700'
+                        }`}
+                        type="button"
+                      >
+                        <div className="font-semibold text-gray-800 text-base">Saturday only</div>
+                        <div className="text-xs sm:text-sm text-gray-600 mt-1">10-hole 2-man scramble</div>
+                        <div className="text-xs sm:text-sm font-medium text-green-700 mt-2">$50</div>
+                      </button>
+
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, partnerEventType: 'both' }))}
+                        className={`w-full p-4 sm:p-6 text-left border-2 rounded-lg transition ${
+                          formData.partnerEventType === 'both'
+                            ? 'border-green-700 bg-green-50'
+                            : 'border-gray-300 hover:border-green-700'
+                        }`}
+                        type="button"
+                      >
+                        <div className="font-semibold text-gray-800 text-base">Both days (Friday & Saturday)</div>
+                        <div className="text-xs sm:text-sm text-gray-600 mt-1">Friday night + Saturday championship</div>
+                        <div className="text-xs sm:text-sm font-medium text-green-700 mt-2">$50</div>
+                      </button>
                     </div>
                   </div>
 
@@ -950,13 +932,10 @@ export default function RegistrationForm() {
                   {formData.partnerPhone && <p><strong>Phone:</strong> {formatPhoneForDisplay(formData.partnerPhone)}</p>}
                   {formData.partnerShirtSize && <p><strong>Shirt Size:</strong> {formData.partnerShirtSize}</p>}
                   {formData.partnerEventType && (
-                    <>
-                      <p><strong>Events:</strong> 
-                        {formData.partnerEventType === 'friday' && ' Friday only'}
-                        {formData.partnerEventType === 'saturday' && ' Saturday only'}
-                        {formData.partnerEventType === 'both' && ' Both days (Friday & Saturday)'}
-                      </p>
-                    </>
+                    <p><strong>Events:</strong> 
+                      {formData.partnerEventType === 'saturday' && ' Saturday only'}
+                      {formData.partnerEventType === 'both' && ' Both days (Friday & Saturday)'}
+                    </p>
                   )}
                 </div>
               </div>
