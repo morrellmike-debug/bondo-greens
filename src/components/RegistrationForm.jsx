@@ -1101,7 +1101,7 @@ export default function RegistrationForm() {
                   <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
                     {(formData.eventType === 'saturday' || formData.eventType === 'both') && (
                       <div className="flex justify-between">
-                        <span>Golf Event Donation</span>
+                        <span>Donation Amount</span>
                         <span>$50</span>
                       </div>
                     )}
@@ -1127,7 +1127,7 @@ export default function RegistrationForm() {
                     <div className="font-medium text-gray-700 mb-2">{formData.partnerName}</div>
                     <div className="ml-4 space-y-1 text-sm text-gray-700 mb-2">
                       <div className="flex justify-between">
-                        <span>Golf Event Donation</span>
+                        <span>Donation Amount</span>
                         <span>${calculateEventFee(formData.partnerEventType)}</span>
                       </div>
                       {formData.partnerDonation > 0 && (
