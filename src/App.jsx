@@ -61,11 +61,6 @@ function AppContent() {
         {currentPage === 'checkin' && <CheckInDashboard />}
         {currentPage === 'admin' && <AdminPanel />}
       </main>
-
-      {/* Footer Instructions for Mike/Jim */}
-      <div className="bg-yellow-50 border-t border-yellow-200 p-2 text-center text-xs text-yellow-800 font-medium">
-        DEMO MODE: Admin and Check-In are temporarily unlocked for the 11 AM meeting.
-      </div>
     </div>
   );
 }
