@@ -18,59 +18,54 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-[100] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="text-xl sm:text-2xl font-bold text-green-700">BONDO GREENS 2026</div>
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               <button
                 onClick={() => setCurrentPage('registration')}
-                className={`px-4 py-2 rounded font-medium transition ${
-                  currentPage === 'registration' ? 'bg-green-700 text-white' : 'text-gray-700 hover:bg-gray-100'
+                className={`px-3 py-2 rounded text-sm font-bold transition-all border ${
+                  currentPage === 'registration' ? 'bg-green-700 text-white border-green-800' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-sm'
                 }`}
               >
-                Registration
+                REGISTRATION
               </button>
               <button
                 onClick={() => setCurrentPage('checkin')}
-                className={`px-4 py-2 rounded font-medium transition ${
-                  currentPage === 'checkin' ? 'bg-green-700 text-white' : 'text-gray-700 hover:bg-gray-100'
+                className={`px-3 py-2 rounded text-sm font-bold transition-all border ${
+                  currentPage === 'checkin' ? 'bg-green-700 text-white border-green-800' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-sm'
                 }`}
               >
-                Check-In
+                CHECK-IN
               </button>
-              {isAdmin && (
-                <button
-                  onClick={() => setCurrentPage('admin')}
-                  className={`px-4 py-2 rounded font-medium transition ${
-                    currentPage === 'admin' ? 'bg-green-700 text-white' : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  Admin
-                </button>
-              )}
+              {/* UNLOCKED ADMIN FOR DEMO - NO TOGGLE NEEDED */}
+              <button
+                onClick={() => setCurrentPage('admin')}
+                className={`px-3 py-2 rounded text-sm font-bold transition-all border ${
+                  currentPage === 'admin' ? 'bg-green-700 text-white border-green-800' : 'bg-blue-600 text-white border-blue-700 hover:bg-blue-700 shadow-sm'
+                }`}
+              >
+                ADMIN PANEL 🔓
+              </button>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Page Content */}
-      <main>
+      <main className="flex-grow">
         {currentPage === 'registration' && <RegistrationForm />}
         {currentPage === 'checkin' && <CheckInDashboard />}
         {currentPage === 'admin' && <AdminPanel />}
       </main>
 
-      {/* Forced Admin Toggle for Demo */}
-      <button
-        onClick={() => authenticateAdmin()}
-        className="fixed bottom-4 right-4 p-3 bg-white text-2xl rounded-full border border-gray-300 shadow-lg z-[9999]"
-        title="Admin Toggle"
-      >
-        ⚙️
-      </button>
+      {/* Footer Instructions for Mike/Jim */}
+      <div className="bg-yellow-50 border-t border-yellow-200 p-2 text-center text-xs text-yellow-800 font-medium">
+        DEMO MODE: Admin and Check-In are temporarily unlocked for the 11 AM meeting.
+      </div>
     </div>
   );
 }
