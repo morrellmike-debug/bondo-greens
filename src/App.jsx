@@ -9,32 +9,33 @@ import DevAuthModal from './components/DevAuthModal';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function AppContent() {
-  const { isDev, isDevAuthenticated, showDevAuth, isAdmin, authenticateAdmin } = useAuth();
-  const [currentPage, setCurrentPage] = useState(() => {
-    const path = window.location.pathname;
-    if (path === '/admin') return 'admin';
-    if (path === '/checkin') return 'checkin';
-    return 'registration';
-  });
+  const { isDev, isDevAuthenticated, isAdmin, authenticateAdmin } = useAuth();
+  
+  // Use a proper state-setter for the current page
+  const [currentPage, setCurrentPage] = useState('registration');
 
-  // Simple "router" effect to handle direct URL navigation
+  // Handle URL changes and initial load
   useEffect(() => {
-    const handlePopState = () => {
+    const handleNavigation = () => {
       const path = window.location.pathname;
       if (path === '/admin') setCurrentPage('admin');
       else if (path === '/checkin') setCurrentPage('checkin');
       else setCurrentPage('registration');
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    // Initial check
+    handleNavigation();
+
+    // Listen for back/forward browser buttons
+    window.addEventListener('popstate', handleNavigation);
+    return () => window.removeEventListener('popstate', handleNavigation);
   }, []);
 
-  // Update URL manually when clicking nav buttons
+  // Update navigate function to sync URL and State
   const navigateTo = (page) => {
-    setCurrentPage(page);
     const path = page === 'registration' ? '/' : `/${page}`;
     window.history.pushState({}, '', path);
+    setCurrentPage(page);
   };
 
   // Show ComingSoon if on production (not dev)
