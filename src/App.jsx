@@ -106,11 +106,7 @@ function AppContent() {
       {/* Page Content */}
       <main>
         {currentPage === 'registration' && <RegistrationForm />}
-        {currentPage === 'checkin' && (
-          <ProtectedRoute requireAdmin={true}>
-            <CheckInDashboard />
-          </ProtectedRoute>
-        )}
+        {currentPage === 'checkin' && <CheckInDashboard />}
         {currentPage === 'admin' && (
           <ProtectedRoute requireAdmin={true}>
             <AdminPanel />
