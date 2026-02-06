@@ -10,7 +10,32 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 function AppContent() {
   const { isDev, isDevAuthenticated, showDevAuth, isAdmin, authenticateAdmin } = useAuth();
-  const [currentPage, setCurrentPage] = useState('registration');
+  const [currentPage, setCurrentPage] = useState(() => {
+    const path = window.location.pathname;
+    if (path === '/admin') return 'admin';
+    if (path === '/checkin') return 'checkin';
+    return 'registration';
+  });
+
+  // Simple "router" effect to handle direct URL navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === '/admin') setCurrentPage('admin');
+      else if (path === '/checkin') setCurrentPage('checkin');
+      else setCurrentPage('registration');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Update URL manually when clicking nav buttons
+  const navigateTo = (page) => {
+    setCurrentPage(page);
+    const path = page === 'registration' ? '/' : `/${page}`;
+    window.history.pushState({}, '', path);
+  };
 
   // Show ComingSoon if on production (not dev)
   if (!isDev) {
