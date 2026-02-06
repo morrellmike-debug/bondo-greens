@@ -11,27 +11,15 @@ import ProtectedRoute from './components/ProtectedRoute';
 function AppContent() {
   const { isDev, isDevAuthenticated, isAdmin, authenticateAdmin } = useAuth();
   
-  // Use a proper state-setter for the current page
   const [currentPage, setCurrentPage] = useState('registration');
 
-  // Handle URL changes and initial load
   useEffect(() => {
-    const handleNavigation = () => {
-      const path = window.location.pathname;
-      if (path === '/admin') setCurrentPage('admin');
-      else if (path === '/checkin') setCurrentPage('checkin');
-      else setCurrentPage('registration');
-    };
-
-    // Initial check
-    handleNavigation();
-
-    // Listen for back/forward browser buttons
-    window.addEventListener('popstate', handleNavigation);
-    return () => window.removeEventListener('popstate', handleNavigation);
+    const path = window.location.pathname;
+    if (path === '/admin') setCurrentPage('admin');
+    else if (path === '/checkin') setCurrentPage('checkin');
+    else setCurrentPage('registration');
   }, []);
 
-  // Update navigate function to sync URL and State
   const navigateTo = (page) => {
     const path = page === 'registration' ? '/' : `/${page}`;
     window.history.pushState({}, '', path);
@@ -103,31 +91,34 @@ function AppContent() {
         </div>
       </nav>
 
-      {/* Page Content */}
       <main>
         {currentPage === 'registration' && <RegistrationForm />}
         {currentPage === 'checkin' && <CheckInDashboard />}
         {currentPage === 'admin' && (
-          <ProtectedRoute requireAdmin={true}>
+          isAdmin ? (
             <AdminPanel />
-          </ProtectedRoute>
+          ) : (
+            <div className="p-8 text-center">
+              <h2 className="text-xl font-bold text-gray-800">Admin Restricted</h2>
+              <p className="text-gray-600 mt-2">Please use the admin toggle to gain access.</p>
+            </div>
+          )
         )}
       </main>
 
-      {/* Admin Toggle (Dev Environment Only) */}
-      {isDev && (
-        <button
-          onClick={() => {
-            authenticateAdmin();
-          }}
-          className="fixed bottom-4 right-4 p-2 bg-gray-200 text-gray-400 rounded-full hover:text-green-700 hover:bg-white border border-transparent hover:border-green-700 transition shadow-sm z-50"
-          title="Toggle Admin Access"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-          </svg>
-        </button>
-      )}
+      {/* Admin Toggle (Fixed Visibility) */}
+      <button
+        onClick={() => {
+          authenticateAdmin();
+        }}
+        className="fixed bottom-4 right-4 p-3 bg-white text-gray-400 rounded-full border border-gray-200 shadow-lg z-[9999] hover:text-green-700 hover:border-green-700 transition-all"
+        title="Admin Toggle"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.5 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
     </div>
   );
 }
