@@ -83,7 +83,7 @@ function AppContent() {
               The Legend <span className="text-green-700">Continues</span>
             </h2>
             <p className="text-sm font-bold text-gray-500 uppercase tracking-[0.4em] mt-2">
-              Est. 2001 • Normal, Illinois
+              Est. 2001 • Baldwin, Kansas
             </p>
           </div>
         </div>
