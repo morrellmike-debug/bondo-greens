@@ -149,7 +149,7 @@ export default function RegistrationForm() {
         delete errors.partnerPhone;
       } else {
         const digitsOnly = value.replace(/\D/g, '');
-        if (digitsOnly.length < 10) {
+        if (digitsOnly.length > 0 && digitsOnly.length < 10) {
           errors.partnerPhone = `Phone number incomplete: ${digitsOnly.length}/10 digits`;
         } else if (digitsOnly.length > 10) {
           errors.partnerPhone = `Too many digits: ${digitsOnly.length}/10 digits`;
