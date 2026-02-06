@@ -9,7 +9,7 @@ import DevAuthModal from './components/DevAuthModal';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function AppContent() {
-  const { isDev, isDevAuthenticated, showDevAuth, isAdmin } = useAuth();
+  const { isDev, isDevAuthenticated, showDevAuth, isAdmin, authenticateAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState('registration');
 
   // Show ComingSoon if on production (not dev)
@@ -24,71 +24,65 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="text-xl sm:text-2xl font-bold text-green-700">BONDO GREENS 2026</div>
-              <div className="flex gap-1">
+            <div className="flex items-center gap-4">
+              <img 
+                src="/bondo-sign.jpg" 
+                alt="Bondo Greens Sign" 
+                className="h-10 w-auto rounded shadow-sm" 
+              />
+              <div className="text-xl sm:text-2xl font-bold text-green-700">BONDO GREENS 2026</div>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setCurrentPage('registration')}
+                className={`px-4 py-2 rounded font-medium transition ${
+                  currentPage === 'registration'
+                    ? 'bg-green-700 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Registration
+              </button>
+
+              {/* Check-In only visible if admin */}
+              {isAdmin && (
                 <button
-                  onClick={() => setCurrentPage('registration')}
+                  onClick={() => setCurrentPage('checkin')}
                   className={`px-4 py-2 rounded font-medium transition ${
-                    currentPage === 'registration'
+                    currentPage === 'checkin'
                       ? 'bg-green-700 text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  Registration
+                  Check-In
                 </button>
+              )}
 
-                {/* Check-In only visible if admin */}
-                {isAdmin && (
-                  <button
-                    onClick={() => setCurrentPage('checkin')}
-                    className={`px-4 py-2 rounded font-medium transition ${
-                      currentPage === 'checkin'
-                        ? 'bg-green-700 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    Check-In
-                  </button>
-                )}
+              {/* Admin only visible if admin */}
+              {isAdmin && (
+                <button
+                  onClick={() => setCurrentPage('admin')}
+                  className={`px-4 py-2 rounded font-medium transition ${
+                    currentPage === 'admin'
+                      ? 'bg-green-700 text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Admin
+                </button>
+              )}
 
-                {/* Admin only visible if admin */}
-                {isAdmin && (
-                  <button
-                    onClick={() => setCurrentPage('admin')}
-                    className={`px-4 py-2 rounded font-medium transition ${
-                      currentPage === 'admin'
-                        ? 'bg-green-700 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    Admin
-                  </button>
-                )}
-
-                {/* Dev badge */}
-                <div className="ml-4 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                  DEV
-                </div>
+              {/* Dev badge */}
+              <div className="ml-4 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                DEV
               </div>
             </div>
           </div>
         </div>
       </nav>
-
-      {/* Banner with Bondo Sign */}
-      <div className="w-full bg-gradient-to-b from-blue-50 to-white py-4 sm:py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <img 
-            src="/bondo-sign.jpg" 
-            alt="Bondo Greens Sign" 
-            className="w-full h-auto max-h-48 sm:max-h-64 object-cover rounded-lg shadow-md" 
-          />
-        </div>
-      </div>
 
       {/* Page Content */}
       <main>
@@ -104,6 +98,21 @@ function AppContent() {
           </ProtectedRoute>
         )}
       </main>
+
+      {/* Admin Toggle (Dev Environment Only) */}
+      {isDev && (
+        <button
+          onClick={() => {
+            authenticateAdmin();
+          }}
+          className="fixed bottom-4 right-4 p-2 bg-gray-200 text-gray-400 rounded-full hover:text-green-700 hover:bg-white border border-transparent hover:border-green-700 transition shadow-sm z-50"
+          title="Toggle Admin Access"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

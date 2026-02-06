@@ -13,6 +13,7 @@ export default function RegistrationForm() {
     registrantDonation: 0, // optional donation for Jeffersons
     // Partner decision (if Saturday/Both)
     partnerSelection: '', // 'partner' or 'team-assign'
+    partnerAssignmentType: 'enter', // 'enter' or 'assign'
     // Partner (if partnerSelection === 'partner')
     partnerName: '',
     partnerEmail: '',
@@ -174,14 +175,13 @@ export default function RegistrationForm() {
       setFormData(prev => ({ ...prev, eventType: eventType }));
       setShowPartnerDecision(true);
     }
-    // For Both, go straight to partner form (partner required, no decision needed)
+    // For Both, go straight to partner decision (instead of forcing partner info)
     else if (eventType === 'both') {
       setFormData(prev => ({
         ...prev,
         eventType: eventType,
-        partnerSelection: 'partner', // Auto-set since partner is required for Both
       }));
-      setShowPartnerDecision(false);
+      setShowPartnerDecision(true);
     }
   };
 
@@ -958,7 +958,10 @@ export default function RegistrationForm() {
           {totalMeals > 0 && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-sm text-gray-700">
-                <strong>Total Meals Included:</strong> {totalMeals}
+                <strong>Total Guest Meals:</strong> {totalMeals}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                (Note: This does not include the golfer's meal)
               </p>
             </div>
           )}
@@ -1023,7 +1026,7 @@ export default function RegistrationForm() {
               )}
               {formData.eventType === 'both' && (
                 <div className="text-sm text-gray-700 font-medium">
-                  ✓ Partner required (Both events)
+                  {formData.partnerSelection === 'partner' ? '✓ Partner info provided' : '✓ Partner assignment requested'}
                 </div>
               )}
             </div>
