@@ -58,13 +58,6 @@ export default function RegistrationForm() {
     return phone.replace(/\D/g, ''); // Remove all non-digits
   };
 
-  // Format phone for display: 5551234567 → (555) 123-4567
-  const formatPhoneForDisplay = (phone) => {
-    const digits = cleanPhone(phone);
-    if (digits.length !== 10) return digits;
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-  };
-
   // Calculate event fee based on partner's selected event
   const calculateEventFee = (eventType) => {
     if (eventType === 'saturday') return 50;
@@ -135,42 +128,6 @@ export default function RegistrationForm() {
     setValidationErrors(errors);
   };
 
-  const handleEventSelect = (eventType) => {
-    setShowEventButtons(false);
-    if (eventType === 'friday' || eventType === 'non-golfer') {
-      setFormData(prev => ({ ...prev, eventType: eventType }));
-      setTimeout(() => setStep(3), 100);
-    }
-    else if (eventType === 'saturday' || eventType === 'both') {
-      setFormData(prev => ({ ...prev, eventType: eventType }));
-      setShowPartnerDecision(true);
-    }
-  };
-
-  const handleAddGuest = () => {
-    setFormData(prev => {
-      const newGuest = { name: '', category: '', shirtSize: '' };
-      if (guestOwner === 'registrant') return { ...prev, registrantGuests: [...prev.registrantGuests, newGuest] };
-      else return { ...prev, partnerGuests: [...prev.partnerGuests, newGuest] };
-    });
-  };
-
-  const handleGuestChange = (idx, field, value) => {
-    setFormData(prev => {
-      const guests = guestOwner === 'registrant' ? [...prev.registrantGuests] : [...prev.partnerGuests];
-      if (field === 'category') guests[idx] = { ...guests[idx], [field]: value, shirtSize: '' };
-      else guests[idx] = { ...guests[idx], [field]: value };
-      return guestOwner === 'registrant' ? { ...prev, registrantGuests: guests } : { ...prev, partnerGuests: guests };
-    });
-  };
-
-  const handleDeleteGuest = (idx) => {
-    setFormData(prev => {
-      if (guestOwner === 'registrant') return { ...prev, registrantGuests: prev.registrantGuests.filter((_, i) => i !== idx) };
-      else return { ...prev, partnerGuests: prev.partnerGuests.filter((_, i) => i !== idx) };
-    });
-  };
-
   const handleSubmit = async () => {
     const cleanedFormData = {
       ...formData,
@@ -218,7 +175,6 @@ export default function RegistrationForm() {
     } finally {
       setLoading(false);
       setSubmitted(false);
-      setGuestOwner('registrant');
       setShowEventButtons(true);
       setShowPartnerDecision(false);
     }
@@ -230,75 +186,72 @@ export default function RegistrationForm() {
            validateEmail(formData.email) && !validationErrors.email && phoneValid;
   };
 
-  const currentGuests = guestOwner === 'registrant' ? formData.registrantGuests : formData.partnerGuests;
-  const totalMeals = formData.registrantGuests.length + formData.partnerGuests.length;
-
   return (
-    <div className=\"w-full\">
-      <div className=\"max-w-2xl mx-auto\">
+    <div className="w-full">
+      <div className="max-w-2xl mx-auto">
         {/* Progress Indicator */}
-        <div className=\"mb-8\">
-          <div className=\"flex justify-between mb-4\">
+        <div className="mb-8">
+          <div className="flex justify-between mb-4">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className=\"flex-1 mx-1\">
+              <div key={i} className="flex-1 mx-1">
                 <div className={`h-2 rounded transition-all duration-500 ${i <= step ? 'bg-green-600 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-slate-200'}`} />
               </div>
             ))}
           </div>
-          <div className=\"text-xs font-black text-slate-400 uppercase tracking-widest text-center\">
+          <div className="text-xs font-black text-slate-400 uppercase tracking-widest text-center">
             Stage {step} of 4
           </div>
         </div>
 
         {/* Step 1: Personal Info */}
         {step === 1 && (
-          <div className=\"bg-white rounded-3xl shadow-xl border border-slate-100 p-8 animate-fade-in\">
-            <h2 className=\"text-2xl font-black mb-8 text-slate-900 uppercase tracking-tight\">Your Profile</h2>
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 animate-fade-in">
+            <h2 className="text-2xl font-black mb-8 text-slate-900 uppercase tracking-tight">Your Profile</h2>
 
-            <div className=\"grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6\">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
               <div>
-                <label className=\"block text-xs font-black text-slate-500 uppercase tracking-widest mb-2\">First Name *</label>
-                <input type=\"text\" name=\"firstName\" value={formData.firstName} onChange={handleInputChange} className=\"w-full\" placeholder=\"Ex: John\" />
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">First Name *</label>
+                <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full" placeholder="Ex: John" />
               </div>
               <div>
-                <label className=\"block text-xs font-black text-slate-500 uppercase tracking-widest mb-2\">Last Name *</label>
-                <input type=\"text\" name=\"lastName\" value={formData.lastName} onChange={handleInputChange} className=\"w-full\" placeholder=\"Ex: Doe\" />
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Last Name *</label>
+                <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full" placeholder="Ex: Doe" />
               </div>
             </div>
 
-            <div className=\"mb-6\">
-              <label className=\"block text-xs font-black text-slate-500 uppercase tracking-widest mb-2\">Email Address *</label>
-              <input type=\"email\" name=\"email\" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} className={`w-full ${validationErrors.email ? 'border-red-500 bg-red-50' : ''}`} placeholder=\"john@example.com\" />
-              {validationErrors.email && <p className=\"text-red-500 text-xs mt-2 font-bold\">❌ {validationErrors.email}</p>}
+            <div className="mb-6">
+              <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Email Address *</label>
+              <input type="email" name="email" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} className={`w-full ${validationErrors.email ? 'border-red-500 bg-red-50' : ''}`} placeholder="john@example.com" />
+              {validationErrors.email && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.email}</p>}
             </div>
 
-            <div className=\"mb-8\">
-              <label className=\"block text-xs font-black text-slate-500 uppercase tracking-widest mb-2\">Shirt Size *</label>
-              <select name=\"shirtSize\" value={formData.shirtSize} onChange={handleInputChange} className=\"w-full\">
-                <option value=\"\">Select size...</option>
-                <option value=\"adult-s\">Small</option>
-                <option value=\"adult-m\">Medium</option>
-                <option value=\"adult-l\">Large</option>
-                <option value=\"adult-xl\">X-Large</option>
-                <option value=\"adult-xxl\">2X-Large</option>
+            <div className="mb-8">
+              <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Shirt Size *</label>
+              <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full">
+                <option value="">Select size...</option>
+                <option value="adult-s">Small</option>
+                <option value="adult-m">Medium</option>
+                <option value="adult-l">Large</option>
+                <option value="adult-xl">X-Large</option>
+                <option value="adult-xxl">2X-Large</option>
               </select>
             </div>
 
-            <div className=\"flex justify-between items-center pt-6 border-t border-slate-100\">
-              <span className=\"text-xs font-bold text-slate-400 uppercase tracking-widest\">Step 1/4</span>
-              <button onClick={() => setStep(2)} disabled={!canProceed()} className=\"px-10 py-4 bg-green-600 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-700 disabled:opacity-30 transition-all\">
+            <div className="flex justify-between items-center pt-6 border-t border-slate-100">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Step 1/4</span>
+              <button onClick={() => setStep(2)} disabled={!canProceed()} className="px-10 py-4 bg-green-600 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-700 disabled:opacity-30 transition-all">
                 Continue
               </button>
             </div>
           </div>
         )}
 
-        {/* ... Rest of components follow same modern style ... */}
-        {/* Shortened for compaction, will finish in next turn if needed */}
-        {step > 1 && <div className=\"p-8 text-center bg-white rounded-3xl shadow-xl border border-slate-100\">
-          <h2 className=\"text-xl font-bold mb-4\">Proceeding to Step {step}</h2>
-          <button onClick={() => setStep(1)} className=\"text-green-600 font-bold uppercase\">Go Back</button>
-        </div>}
+        {step > 1 && (
+          <div className="p-8 text-center bg-white rounded-3xl shadow-xl border border-slate-100">
+            <h2 className="text-xl font-bold mb-4">Proceeding to Step {step}</h2>
+            <button onClick={() => setStep(1)} className="text-green-600 font-bold uppercase">Go Back</button>
+          </div>
+        )}
       </div>
     </div>
   );
