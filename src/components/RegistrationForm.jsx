@@ -134,6 +134,17 @@ export default function RegistrationForm() {
     setValidationErrors(errors);
   };
 
+  const handleEventSelect = (eventType) => {
+    setShowEventButtons(false);
+    setFormData(prev => ({ ...prev, eventType }));
+    
+    if (eventType === 'friday' || eventType === 'non-golfer') {
+      setStep(3);
+    } else {
+      setShowPartnerDecision(true);
+    }
+  };
+
   const handleSubmit = async () => {
     const cleanedFormData = {
       ...formData,
@@ -258,10 +269,107 @@ export default function RegistrationForm() {
           </div>
         )}
 
-        {step > 1 && (
-          <div className="p-8 text-center bg-white rounded-3xl shadow-xl border border-slate-100">
-            <h2 className="text-xl font-bold mb-4">Proceeding to Step {step}</h2>
-            <button onClick={() => setStep(1)} className="text-green-600 font-bold uppercase">Go Back</button>
+        {/* Step 2: Event Selection */}
+        {step === 2 && (
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 animate-fade-in">
+            {showEventButtons && (
+              <>
+                <h2 className="text-2xl font-black mb-8 text-slate-900 uppercase tracking-tight">Choose Your Experience</h2>
+                <div className="space-y-4">
+                  {[
+                    { id: 'friday', label: 'Friday Only', desc: 'Social round and dinner' },
+                    { id: 'saturday', label: 'Saturday Only', desc: 'The Main Event + Banquet' },
+                    { id: 'both', label: 'Both Days', desc: 'Full Bondo Greens Weekend' },
+                    { id: 'non-golfer', label: 'Non-Golfer', desc: 'Dinner & Socializing only' },
+                  ].map(event => (
+                    <button
+                      key={event.id}
+                      onClick={() => handleEventSelect(event.id)}
+                      className="w-full p-6 text-left rounded-2xl border-2 border-slate-100 hover:border-green-600 hover:bg-green-50 transition-all group"
+                    >
+                      <div className="font-black text-slate-900 uppercase group-hover:text-green-700">{event.label}</div>
+                      <div className="text-sm text-slate-500">{event.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {showPartnerDecision && (
+              <>
+                <h2 className="text-2xl font-black mb-8 text-slate-900 uppercase tracking-tight">Partner Selection</h2>
+                <div className="space-y-4">
+                  <button
+                    onClick={() => { setShowPartnerDecision(false); setStep(3); }}
+                    className="w-full p-6 text-left rounded-2xl border-2 border-slate-100 hover:border-green-600 hover:bg-green-50 transition-all group"
+                  >
+                    <div className="font-black text-slate-900 uppercase group-hover:text-green-700">Assign Me a Partner</div>
+                    <div className="text-sm text-slate-500">I'll play with whoever Jim pairs me with.</div>
+                  </button>
+                  <button
+                    onClick={() => { setShowPartnerDecision(false); setStep(3); setFormData(prev => ({...prev, partnerSelection: 'partner'})); }}
+                    className="w-full p-6 text-left rounded-2xl border-2 border-slate-100 hover:border-green-600 hover:bg-green-50 transition-all group"
+                  >
+                    <div className="font-black text-slate-900 uppercase group-hover:text-green-700">I Have a Partner</div>
+                    <div className="text-sm text-slate-500">I'll enter my partner's details on the next step.</div>
+                  </button>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-between items-center pt-6 border-t border-slate-100 mt-8">
+              <button onClick={() => { setStep(1); setShowEventButtons(true); setShowPartnerDecision(false); }} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition">
+                ← Back to Profile
+              </button>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Step 2/4</span>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Partner/Donation/Guests Placeholder */}
+        {step === 3 && (
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 animate-fade-in">
+            <h2 className="text-2xl font-black mb-4 text-slate-900 uppercase tracking-tight">Final Details</h2>
+            <p className="text-slate-500 mb-8 font-medium italic">Logic for Partners & Guests coming soon...</p>
+            
+            <div className="flex justify-between items-center pt-6 border-t border-slate-100">
+              <button onClick={() => setStep(2)} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition">
+                ← Back to Event
+              </button>
+              <button onClick={() => setStep(4)} className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 transition-all shadow-lg">
+                Review Order
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Summary */}
+        {step === 4 && (
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 animate-fade-in">
+            <h2 className="text-2xl font-black mb-8 text-slate-900 uppercase tracking-tight">Review & Submit</h2>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-8 space-y-3">
+              <div className="flex justify-between font-bold">
+                <span className="text-slate-500 uppercase text-xs tracking-widest">Base Registration</span>
+                <span className="text-slate-900 font-mono">$50.00</span>
+              </div>
+              <div className="flex justify-between font-black text-lg border-t border-slate-200 pt-3">
+                <span className="text-slate-900 uppercase tracking-tighter">Total Due</span>
+                <span className="text-green-700 font-mono">${calculateTotalDue()}.00</span>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center pt-6 border-t border-slate-100">
+              <button onClick={() => setStep(3)} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition">
+                ← Back
+              </button>
+              <button 
+                onClick={handleSubmit} 
+                disabled={loading}
+                className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 transition-all shadow-lg flex items-center gap-2"
+              >
+                {loading ? 'Processing...' : 'Submit Registration'}
+              </button>
+            </div>
           </div>
         )}
       </div>
