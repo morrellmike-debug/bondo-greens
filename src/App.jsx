@@ -5,68 +5,43 @@ import RegistrationForm from './components/RegistrationForm';
 import CheckInDashboard from './components/CheckInDashboard';
 import AdminPanel from './components/AdminPanel';
 import AdminGate from './components/AdminGate';
-import ComingSoon from './components/ComingSoon';
 import DevAuthModal from './components/DevAuthModal';
-import ProtectedRoute from './components/ProtectedRoute';
 
 function AppContent() {
-  const { isDev, isDevAuthenticated, isAdmin, authenticateAdmin } = useAuth();
+  const { isDevAuthenticated, isAdmin, authenticateAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState('registration');
 
-  // Hard-coded dev access bypass for the meeting
   if (!isDevAuthenticated) {
     return <DevAuthModal />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 gap-4">
-            <div className="text-xl sm:text-2xl font-bold text-green-700 uppercase tracking-tighter shrink-0">
+          <div className="flex justify-between items-center h-16">
+            <div className="text-xl sm:text-2xl font-bold text-green-700 dark:text-green-500 uppercase tracking-tighter shrink-0">
               BONDO GREENS 2026
             </div>
-            <div className="flex gap-1 overflow-x-auto no-scrollbar py-2">
+            <div className="flex gap-1 overflow-x-auto no-scrollbar">
               <button
                 onClick={() => setCurrentPage('registration')}
-                className={`px-3 py-2 rounded font-medium transition whitespace-nowrap ${
+                className={`px-4 py-2 rounded-xl font-black uppercase text-xs tracking-widest transition ${
                   currentPage === 'registration'
-                    ? 'bg-green-700 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-green-700 text-white shadow-lg shadow-green-200 dark:shadow-none'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 Registration
               </button>
 
               <button
-                onClick={() => setCurrentPage('checkin')}
-                className={`px-3 py-2 rounded font-medium transition whitespace-nowrap ${
-                  currentPage === 'checkin'
-                    ? 'bg-green-700 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Check-In
-              </button>
-
-              <button
-                onClick={() => setCurrentPage('inventory')}
-                className={`px-3 py-2 rounded font-medium transition whitespace-nowrap ${
-                  currentPage === 'inventory'
-                    ? 'bg-green-700 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                Inventory
-              </button>
-
-              <button
                 onClick={() => setCurrentPage('admin')}
-                className={`px-3 py-2 rounded font-medium transition whitespace-nowrap ${
+                className={`px-4 py-2 rounded-xl font-black uppercase text-xs tracking-widest transition ${
                   currentPage === 'admin'
-                    ? 'bg-green-700 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-green-700 text-white shadow-lg shadow-green-200 dark:shadow-none'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 Admin
@@ -76,37 +51,43 @@ function AppContent() {
         </div>
       </nav>
 
-      {/* Hero / Header Section (Restored) */}
+      {/* Hero */}
       {currentPage === 'registration' && (
-        <div className="w-full bg-gradient-to-b from-blue-50 to-white py-8 border-b border-gray-200">
+        <div className="w-full bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-950 py-12 border-b border-gray-200 dark:border-slate-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-4xl font-black text-gray-900 uppercase italic">
-              The Legend <span className="text-green-700">Continues</span>
+            <h2 className="text-4xl sm:text-6xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter">
+              The Legend <span className="text-green-600">Continues</span>
             </h2>
-            <p className="text-sm font-bold text-gray-500 uppercase tracking-[0.4em] mt-2">
+            <p className="text-xs sm:text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.5em] mt-4">
               Est. 2001 • Baldwin, Kansas
             </p>
           </div>
         </div>
       )}
 
-      {/* Page Content */}
-      <main className={`max-w-7xl mx-auto py-8 px-4 ${currentPage === 'admin' ? '' : 'max-w-4xl'}`}>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto py-8 px-4">
         {currentPage === 'registration' && <RegistrationForm />}
-        {currentPage === 'checkin' && <CheckInDashboard showInventory={false} />}
-        {currentPage === 'inventory' && <CheckInDashboard showInventory={true} showRoster={false} />}
         {currentPage === 'admin' && (
           <AdminGate>
-            <AdminPanel />
+            <div className="space-y-12">
+              <AdminPanel />
+              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                <div className="p-8 border-b dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                  <h3 className="text-2xl font-black uppercase italic text-slate-900 dark:text-white">Tournament Roster</h3>
+                  <p className="text-slate-500 text-sm font-medium">Live check-in and registration tracking</p>
+                </div>
+                <CheckInDashboard showInventory={true} showRoster={true} />
+              </div>
+            </div>
           </AdminGate>
         )}
       </main>
 
-      {/* Discrete Admin Toggle (Hidden if already admin) */}
       {!isAdmin && (
         <button
           onClick={() => authenticateAdmin()}
-          className="fixed bottom-4 right-4 p-2 bg-gray-200 text-gray-400 rounded-full hover:text-green-700 transition shadow-sm z-50"
+          className="fixed bottom-6 right-6 p-3 bg-white dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-full hover:text-green-600 transition shadow-xl z-50 border dark:border-slate-700"
           title="Admin Unlock"
         >
           ⚙️
