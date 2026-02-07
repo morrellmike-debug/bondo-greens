@@ -1,0 +1,53 @@
+  const handleSubmit = async () => {
+    // Clean phone to just digits
+    const cleanedFormData = {
+      ...formData,
+      phone: cleanPhone(formData.phone),
+    };
+    
+    setSubmitted(true);
+
+    try {
+      // Trigger the Vercel Email Function
+      await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...cleanedFormData,
+          totalDue: calculateTotalDue()
+        }),
+      });
+
+      alert(`✓ Registration submitted!\nConfirmation sent to ${formData.email}`);
+      
+      // Reset Form
+      setStep(1);
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        shirtSize: '',
+        eventType: '',
+        registrantDonation: 0,
+        partnerSelection: '',
+        partnerName: '',
+        partnerEmail: '',
+        partnerPhone: '',
+        partnerShirtSize: '',
+        partnerEventType: '',
+        partnerDonation: 0,
+        registrantGuests: [],
+        partnerGuests: [],
+      });
+      setValidationErrors({});
+    } catch (error) {
+      console.error('Submission failed:', error);
+      alert('❌ Submission failed. Please try again.');
+    } finally {
+      setSubmitted(false);
+      setGuestOwner('registrant');
+      setShowEventButtons(true);
+      setShowPartnerDecision(false);
+    }
+  };
