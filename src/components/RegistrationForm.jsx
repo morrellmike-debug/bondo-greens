@@ -187,9 +187,9 @@ export default function RegistrationForm() {
   };
 
   const canProceed = () => {
-    const phoneValid = !formData.phone || (validatePhone(formData.phone) && !validationErrors.phone);
-    return formData.firstName && formData.lastName && formData.email && formData.shirtSize &&
-           validateEmail(formData.email) && !validationErrors.email && phoneValid;
+    const emailValid = formData.email && validateEmail(formData.email) && !validationErrors.email;
+    const phoneValid = formData.phone && validatePhone(formData.phone) && !validationErrors.phone;
+    return formData.firstName && formData.lastName && emailValid && phoneValid && formData.shirtSize;
   };
 
   return (
@@ -231,6 +231,12 @@ export default function RegistrationForm() {
               {validationErrors.email && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.email}</p>}
             </div>
 
+            <div className="mb-6">
+              <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Mobile Phone *</label>
+              <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full ${validationErrors.phone ? 'border-red-500 bg-red-50' : ''}`} placeholder="(555) 555-5555" />
+              {validationErrors.phone && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.phone}</p>}
+            </div>
+
             <div className="mb-8">
               <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Shirt Size *</label>
               <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full">
@@ -245,7 +251,7 @@ export default function RegistrationForm() {
 
             <div className="flex justify-between items-center pt-6 border-t border-slate-100">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Step 1/4</span>
-              <button onClick={() => setStep(2)} disabled={!canProceed()} className="px-10 py-4 bg-green-600 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-700 disabled:opacity-30 transition-all">
+              <button onClick={() => setStep(2)} disabled={!canProceed()} className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg">
                 Continue
               </button>
             </div>

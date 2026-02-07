@@ -23,11 +23,11 @@ function AppContent() {
       {/* Navigation */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="text-xl sm:text-2xl font-bold text-green-700 uppercase tracking-tighter">
+          <div className="flex justify-between items-center h-16 gap-4">
+            <div className="text-xl sm:text-2xl font-bold text-green-700 uppercase tracking-tighter shrink-0">
               BONDO GREENS 2026
             </div>
-            <div className="flex gap-1 overflow-x-auto">
+            <div className="flex gap-1 overflow-x-auto no-scrollbar py-2">
               <button
                 onClick={() => setCurrentPage('registration')}
                 className={`px-3 py-2 rounded font-medium transition whitespace-nowrap ${
