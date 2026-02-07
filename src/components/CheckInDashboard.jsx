@@ -3,10 +3,9 @@ import { useState, useEffect } from 'react';
 const mockRegistrations = [
   { id: 1, firstName: 'John', lastName: 'Doe', eventType: 'both', shirtSize: 'adult-l', donation: 50, paid: false, checkedIn: false, guests: [{ category: 'adult', shirtSize: 'adult-m' }] },
   { id: 2, firstName: 'Jane', lastName: 'Smith', eventType: 'saturday', shirtSize: 'adult-s', donation: 75, paid: true, checkedIn: true, guests: [] },
-  // Alphabetical sorting will be applied to real data
 ];
 
-export default function CheckInDashboard() {
+export default function CheckInDashboard({ showInventory = true, showRoster = true }) {
   const [registrations, setRegistrations] = useState(mockRegistrations);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -153,7 +152,8 @@ export default function CheckInDashboard() {
                         onClick={() => toggleStatus(reg.id, 'paid')}
                         className={`px-3 py-1 rounded text-xs font-bold ${reg.paid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
                       >
-                        {reg.paid ? 'PAID' : 'UNPAID'}\n                      </button>
+                        {reg.paid ? 'PAID' : 'UNPAID'}
+                      </button>
                     </td>
                     <td className="p-4 text-center">
                       <input 
