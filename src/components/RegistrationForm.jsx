@@ -72,7 +72,7 @@ export default function RegistrationForm() {
     return 0;
   };
 
-  // Calculate total due (event fee + donation)
+  // Calculate total due
   const calculateTotalDue = () => {
     let total = 0;
     
@@ -145,49 +145,36 @@ export default function RegistrationForm() {
     ],
   };
 
-  const handleAddGuest = () => {
-    setFormData(prev => {
-      const newGuest = { name: '', category: '', shirtSize: '' };
-      if (guestOwner === 'registrant') {
-        return {
-          ...prev,
-          registrantGuests: [...prev.registrantGuests, newGuest],
-        };
-      } else {
-        return {
-          ...prev,
-          partnerGuests: [...prev.partnerGuests, newGuest],
-        };
-      }
-    });
+  const handleAddGuest = (owner) => {
+    const fieldName = owner === 'registrant' ? 'registrantGuests' : 'partnerGuests';
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: [...prev[fieldName], { name: '', category: 'adult', shirtSize: 'adult-m' }]
+    }));
   };
 
-  const handleGuestChange = (idx, field, value) => {
-    setFormData(prev => {
-      const fieldName = guestOwner === 'registrant' ? 'registrantGuests' : 'partnerGuests';
-      return {
-        ...prev,
-        [fieldName]: prev[fieldName].map((g, i) => {
-          if (i === idx) {
-            if (field === 'category') {
-              return { ...g, [field]: value, shirtSize: '' };
-            }
-            return { ...g, [field]: value };
+  const handleGuestChange = (owner, idx, field, value) => {
+    const fieldName = owner === 'registrant' ? 'registrantGuests' : 'partnerGuests';
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: prev[fieldName].map((g, i) => {
+        if (i === idx) {
+          if (field === 'category') {
+            return { ...g, [field]: value, shirtSize: '' };
           }
-          return g;
-        }),
-      };
-    });
+          return { ...g, [field]: value };
+        }
+        return g;
+      }),
+    }));
   };
 
-  const handleDeleteGuest = (idx) => {
-    setFormData(prev => {
-      const fieldName = guestOwner === 'registrant' ? 'registrantGuests' : 'partnerGuests';
-      return {
-        ...prev,
-        [fieldName]: prev[fieldName].filter((_, i) => i !== idx),
-      };
-    });
+  const handleDeleteGuest = (owner, idx) => {
+    const fieldName = owner === 'registrant' ? 'registrantGuests' : 'partnerGuests';
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: prev[fieldName].filter((_, i) => i !== idx),
+    }));
   };
 
   const handleBlur = (e) => {
@@ -211,14 +198,6 @@ export default function RegistrationForm() {
       if (!value) delete errors.partnerEmail;
       else if (!validateEmail(value)) errors.partnerEmail = 'Please enter a valid email address';
       else delete errors.partnerEmail;
-    }
-    if (name === 'partnerPhone') {
-      if (!value) delete errors.partnerPhone;
-      else {
-        const digitsOnly = value.replace(/\D/g, '');
-        if (digitsOnly.length > 0 && digitsOnly.length < 10) errors.partnerPhone = `Phone number incomplete: ${digitsOnly.length}/10 digits`;
-        else delete errors.partnerPhone;
-      }
     }
     setValidationErrors(errors);
   };
@@ -258,7 +237,6 @@ export default function RegistrationForm() {
       alert(`✓ Registration submitted!\nConfirmation sent to ${formData.email}`);
       setSubmitted(true);
       
-      // Reset after delay
       setTimeout(() => {
         setStep(1);
         setFormData({
@@ -327,29 +305,29 @@ export default function RegistrationForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">First Name *</label>
-                <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full rounded-xl border-slate-200 focus:border-green-600 focus:ring-green-600" placeholder="Ex: Mike" />
+                <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full rounded-xl" placeholder="Ex: Mike" />
               </div>
               <div>
                 <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Last Name *</label>
-                <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full rounded-xl border-slate-200 focus:border-green-600 focus:ring-green-600" placeholder="Ex: Morrell" />
+                <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full rounded-xl" placeholder="Ex: Morrell" />
               </div>
             </div>
 
             <div className="mb-6">
               <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Email Address *</label>
-              <input type="email" name="email" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.email ? 'border-red-500 bg-red-50' : 'border-slate-200'} focus:border-green-600 focus:ring-green-600`} placeholder="mike@example.com" />
-              {validationErrors.email && <p className="text-red-500 text-xs mt-2 font-bold uppercase tracking-tighter">❌ {validationErrors.email}</p>}
+              <input type="email" name="email" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.email ? 'border-red-500 bg-red-50' : ''}`} placeholder="mike@example.com" />
+              {validationErrors.email && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.email}</p>}
             </div>
 
             <div className="mb-6">
               <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Mobile Phone *</label>
-              <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-slate-200'} focus:border-green-600 focus:ring-green-600`} placeholder="(555) 555-5555" />
-              {validationErrors.phone && <p className="text-red-500 text-xs mt-2 font-bold uppercase tracking-tighter">❌ {validationErrors.phone}</p>}
+              <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.phone ? 'border-red-500 bg-red-50' : ''}`} placeholder="(555) 555-5555" />
+              {validationErrors.phone && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.phone}</p>}
             </div>
 
             <div className="mb-8">
               <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Shirt Size *</label>
-              <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full rounded-xl border-slate-200 focus:border-green-600 focus:ring-green-600">
+              <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full rounded-xl">
                 <option value="">Select size...</option>
                 <option value="adult-s">Small</option>
                 <option value="adult-m">Medium</option>
@@ -357,6 +335,22 @@ export default function RegistrationForm() {
                 <option value="adult-xl">X-Large</option>
                 <option value="adult-xxl">2X-Large</option>
               </select>
+            </div>
+
+            {/* Step 1 Donation Block (Restored) */}
+            <div className="mb-8 border rounded-2xl p-6 bg-blue-50 border-blue-100 space-y-4">
+              <div className="p-4 bg-white rounded-xl border-l-4 border-green-600 flex justify-between items-center shadow-sm">
+                <span className="font-black text-slate-700 uppercase text-[10px] tracking-widest">Tournament Entry</span>
+                <span className="text-lg font-black text-green-700 font-mono">$50</span>
+              </div>
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Additional Donation (Optional)</label>
+                <p className="text-[10px] text-slate-400 font-bold uppercase mb-3 tracking-tighter italic">Help the Jeffersons</p>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400">$</span>
+                  <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className="w-full pl-8 rounded-xl border-slate-200" placeholder="0" />
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-between items-center pt-6 border-t border-slate-100">
@@ -397,36 +391,18 @@ export default function RegistrationForm() {
               <>
                 <h2 className="text-2xl font-black mb-8 text-slate-900 uppercase tracking-tight">2-Man Scramble Partner</h2>
                 <div className="space-y-4">
-                  <button
-                    onClick={() => setFormData(prev => ({ ...prev, partnerSelection: 'partner' }))}
-                    className={`w-full p-6 text-left rounded-2xl border-2 transition-all group ${formData.partnerSelection === 'partner' ? 'border-green-600 bg-green-50' : 'border-slate-100 hover:border-green-600 hover:bg-green-50'}`}
-                  >
+                  <button onClick={() => setFormData(prev => ({ ...prev, partnerSelection: 'partner' }))} className={`w-full p-6 text-left rounded-2xl border-2 transition-all group ${formData.partnerSelection === 'partner' ? 'border-green-600 bg-green-50' : 'border-slate-100 hover:border-green-600 hover:bg-green-50'}`}>
                     <div className="font-black text-slate-900 uppercase group-hover:text-green-700">Yes - I have a partner</div>
                     <div className="text-sm text-slate-500 mt-1">Enter my partner's information</div>
                   </button>
-                  <button
-                    onClick={() => setFormData(prev => ({ ...prev, partnerSelection: 'team-assign' }))}
-                    className={`w-full p-6 text-left rounded-2xl border-2 transition-all group ${formData.partnerSelection === 'team-assign' ? 'border-green-600 bg-green-50' : 'border-slate-100 hover:border-green-600 hover:bg-green-50'}`}
-                  >
+                  <button onClick={() => setFormData(prev => ({ ...prev, partnerSelection: 'team-assign' }))} className={`w-full p-6 text-left rounded-2xl border-2 transition-all group ${formData.partnerSelection === 'team-assign' ? 'border-green-600 bg-green-50' : 'border-slate-100 hover:border-green-600 hover:bg-green-50'}`}>
                     <div className="font-black text-slate-900 uppercase group-hover:text-green-700">No - Assign me to a team</div>
                     <div className="text-sm text-slate-500 mt-1">Let Jim assign me to a team</div>
                   </button>
                 </div>
                 <div className="flex justify-between items-center pt-8 mt-8 border-t border-slate-100">
                   <button onClick={() => { setShowPartnerDecision(false); setShowEventButtons(true); }} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition">← Back</button>
-                  <button 
-                    onClick={() => {
-                      if (formData.partnerSelection === 'partner') {
-                        setShowPartnerDecision(false);
-                      } else {
-                        setStep(3);
-                      }
-                    }} 
-                    disabled={!formData.partnerSelection}
-                    className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg"
-                  >
-                    Next
-                  </button>
+                  <button onClick={() => { if (formData.partnerSelection === 'partner') { setShowPartnerDecision(false); } else { setStep(3); } }} disabled={!formData.partnerSelection} className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg">Next</button>
                 </div>
               </>
             ) : (
@@ -436,23 +412,22 @@ export default function RegistrationForm() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                     <div>
                       <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Name *</label>
-                      <input type="text" name="partnerName" value={formData.partnerName} onChange={handleInputChange} className="w-full rounded-xl border-slate-200" placeholder="Partner's full name" />
+                      <input type="text" name="partnerName" value={formData.partnerName} onChange={handleInputChange} className="w-full rounded-xl" placeholder="Partner's full name" />
                     </div>
                     <div>
                       <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Email *</label>
-                      <input type="email" name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.partnerEmail ? 'border-red-500 bg-red-50' : 'border-slate-200'}`} placeholder="partner@example.com" />
+                      <input type="email" name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.partnerEmail ? 'border-red-500 bg-red-50' : ''}`} placeholder="partner@example.com" />
                       {validationErrors.partnerEmail && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.partnerEmail}</p>}
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                     <div>
                       <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Phone</label>
-                      <input type="tel" name="partnerPhone" value={formData.partnerPhone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.partnerPhone ? 'border-red-500 bg-red-50' : 'border-slate-200'}`} placeholder="(555) 555-5555" />
+                      <input type="tel" name="partnerPhone" value={formData.partnerPhone} onChange={handleInputChange} className="w-full rounded-xl" placeholder="(555) 555-5555" />
                     </div>
                     <div>
                       <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Shirt Size</label>
-                      <select name="partnerShirtSize" value={formData.partnerShirtSize} onChange={handleInputChange} className="w-full rounded-xl border-slate-200">
+                      <select name="partnerShirtSize" value={formData.partnerShirtSize} onChange={handleInputChange} className="w-full rounded-xl">
                         <option value="">No shirt</option>
                         <option value="adult-s">Small</option>
                         <option value="adult-m">Medium</option>
@@ -462,139 +437,85 @@ export default function RegistrationForm() {
                       </select>
                     </div>
                   </div>
-
                   <div className="mb-6">
-                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Which event(s) is your partner attending? *</p>
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Partner Event *</p>
                     <div className="space-y-3">
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, partnerEventType: 'saturday' }))}
-                        className={`w-full p-4 text-left border-2 rounded-xl transition-all ${formData.partnerEventType === 'saturday' ? 'border-green-600 bg-green-50' : 'border-slate-200 hover:border-green-600'}`}
-                      >
+                      <button onClick={() => setFormData(prev => ({ ...prev, partnerEventType: 'saturday' }))} className={`w-full p-4 text-left border-2 rounded-xl transition-all ${formData.partnerEventType === 'saturday' ? 'border-green-600 bg-green-50' : 'border-slate-200 hover:border-green-600'}`}>
                         <div className="font-bold text-slate-900">Saturday only ($50)</div>
                       </button>
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, partnerEventType: 'both' }))}
-                        className={`w-full p-4 text-left border-2 rounded-xl transition-all ${formData.partnerEventType === 'both' ? 'border-green-600 bg-green-50' : 'border-slate-200 hover:border-green-600'}`}
-                      >
-                        <div className="font-bold text-slate-900">Both days (Friday & Saturday) ($50)</div>
+                      <button onClick={() => setFormData(prev => ({ ...prev, partnerEventType: 'both' }))} className={`w-full p-4 text-left border-2 rounded-xl transition-all ${formData.partnerEventType === 'both' ? 'border-green-600 bg-green-50' : 'border-slate-200 hover:border-green-600'}`}>
+                        <div className="font-bold text-slate-900">Both days ($50)</div>
                       </button>
+                    </div>
+                  </div>
+                  <div className="mt-6">
+                    <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner's Optional Donation</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
+                      <input type="number" name="partnerDonation" value={formData.partnerDonation} onChange={handleInputChange} className="w-full pl-8 rounded-xl border-slate-200" placeholder="0" />
                     </div>
                   </div>
                 </div>
                 <div className="flex justify-between items-center pt-8 mt-8 border-t border-slate-100">
                   <button onClick={() => setShowPartnerDecision(true)} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition">← Back</button>
-                  <button 
-                    onClick={() => setStep(3)} 
-                    disabled={!formData.partnerName || !formData.partnerEmail || !formData.partnerEventType || validationErrors.partnerEmail}
-                    className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg shadow-green-100"
-                  >
-                    Next
-                  </button>
+                  <button onClick={() => setStep(3)} disabled={!formData.partnerName || !formData.partnerEmail || !formData.partnerEventType || validationErrors.partnerEmail} className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg shadow-green-100">Next</button>
                 </div>
               </>
             )}
           </div>
         )}
 
-        {/* Step 3: Final Details */}
+        {/* Step 3: Guests */}
         {step === 3 && (
           <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 animate-fade-in">
-            <h2 className="text-2xl font-black mb-8 text-slate-900 uppercase tracking-tight">Final Details</h2>
+            <h2 className="text-2xl font-black mb-4 text-slate-900 uppercase tracking-tight">Dinner Guests</h2>
+            <p className="text-slate-500 mb-8 font-medium">Add family members for the banquet. Meals are included for all guests.</p>
             
-            {/* Donations Section */}
-            <div className="mb-10 p-6 bg-blue-50 rounded-2xl border border-blue-100">
-              <h3 className="text-sm font-black text-blue-700 uppercase tracking-widest mb-4">Optional Donations (Help Jeffersons)</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{formData.firstName}'s Donation</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
-                    <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className="w-full pl-8 rounded-xl border-slate-200" placeholder="0" />
-                  </div>
-                </div>
-                {formData.partnerName && (
-                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">{formData.partnerName}'s Donation</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
-                      <input type="number" name="partnerDonation" value={formData.partnerDonation} onChange={handleInputChange} className="w-full pl-8 rounded-xl border-slate-200" placeholder="0" />
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div className="mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex gap-2">
+              <button onClick={() => setGuestOwner('registrant')} className={`flex-1 py-3 px-4 rounded-xl font-bold uppercase tracking-tighter transition-all ${guestOwner === 'registrant' ? 'bg-green-700 text-white' : 'bg-white text-slate-400 border hover:bg-slate-100'}`}>{formData.firstName}'s</button>
+              {formData.partnerName && <button onClick={() => setGuestOwner('partner')} className={`flex-1 py-3 px-4 rounded-xl font-bold uppercase tracking-tighter transition-all ${guestOwner === 'partner' ? 'bg-green-700 text-white' : 'bg-white text-slate-400 border hover:bg-slate-100'}`}>{formData.partnerName}'s</button>}
             </div>
 
-            {/* Guests Section */}
-            <div className="mb-10">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Additional Guests (Dinner Only)</h3>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => setGuestOwner('registrant')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${guestOwner === 'registrant' ? 'bg-green-700 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
-                  >
-                    {formData.firstName}'s
-                  </button>
-                  {formData.partnerName && (
-                    <button 
-                      onClick={() => setGuestOwner('partner')}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${guestOwner === 'partner' ? 'bg-green-700 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
-                    >
-                      {formData.partnerName}'s
-                    </button>
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-xs text-slate-500 font-medium italic">Adding for: <span className="font-bold text-slate-900">{guestOwner === 'registrant' ? formData.firstName : formData.partnerName}</span></p>
+              <button onClick={() => addGuest(guestOwner)} className="px-4 py-2 bg-slate-900 text-white text-xs font-black uppercase rounded-lg hover:bg-slate-800 transition shadow-md">+ Add Guest</button>
+            </div>
+
+            <div className="space-y-4 mb-10">
+              {currentGuests.map((guest, idx) => (
+                <div key={idx} className="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative group animate-slide-up">
+                  <button onClick={() => handleDeleteGuest(guestOwner, idx)} className="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Name</label>
+                      <input type="text" value={guest.name} onChange={(e) => handleGuestChange(guestOwner, idx, 'name', e.target.value)} className="w-full rounded-lg" placeholder="Guest Name" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Category</label>
+                      <select value={guest.category} onChange={(e) => handleGuestChange(guestOwner, idx, 'category', e.target.value)} className="w-full rounded-lg">
+                        <option value="adult">Adult</option>
+                        <option value="child">Child</option>
+                        <option value="toddler">Toddler</option>
+                        <option value="infant">Infant</option>
+                      </select>
+                    </div>
+                  </div>
+                  {(guest.category === 'adult' || guest.category === 'child') && (
+                    <div className="mt-4">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Shirt Size (Optional)</label>
+                      <select value={guest.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className="w-full rounded-lg">
+                        <option value="">No shirt</option>
+                        {shirtSizesByCategory[guest.category]?.map(size => <option key={size.value} value={size.value}>{size.label}</option>)}
+                      </select>
+                    </div>
                   )}
                 </div>
-              </div>
-
-              <div className="mb-6 flex justify-between items-center">
-                <p className="text-xs text-slate-500 font-medium italic">Adding guests for: <span className="font-bold text-slate-900">{guestOwner === 'registrant' ? formData.firstName : formData.partnerName}</span></p>
-                <button 
-                  onClick={() => addGuest(guestOwner)}
-                  className="px-4 py-2 bg-slate-900 text-white text-xs font-black uppercase rounded-lg hover:bg-slate-800 transition shadow-md"
-                >
-                  + Add Guest
-                </button>
-              </div>
-
-              <div className="space-y-4 mb-10">
-                {currentGuests.map((guest, idx) => (
-                  <div key={idx} className="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative group animate-slide-up">
-                    <button onClick={() => removeGuest(guestOwner, idx)} className="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Guest Category *</label>
-                        <select value={guest.category} onChange={(e) => handleGuestInputChange(guestOwner, idx, 'category', e.target.value)} className="w-full rounded-lg border-slate-200">
-                          <option value="adult">Adult</option>
-                          <option value="child">Child (Under 12)</option>
-                          <option value="toddler">Toddler (Under 5)</option>
-                          <option value="infant">Infant (Under 2)</option>
-                        </select>
-                      </div>
-                      {(guest.category === 'adult' || guest.category === 'child') && (
-                        <div>
-                          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Shirt Size</label>
-                          <select value={guest.shirtSize} onChange={(e) => handleGuestInputChange(guestOwner, idx, 'shirtSize', e.target.value)} className="w-full rounded-lg border-slate-200">
-                            <option value="adult-s">Adult S</option>
-                            <option value="adult-m">Adult M</option>
-                            <option value="adult-l">Adult L</option>
-                            <option value="adult-xl">Adult XL</option>
-                            <option value="child-s">Child S</option>
-                            <option value="child-m">Child M</option>
-                            <option value="child-l">Child L</option>
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-            
+
             <div className="flex justify-between items-center pt-6 border-t border-slate-100">
-              <button onClick={() => setStep(2)} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition">← Back to Event</button>
-              <button onClick={() => setStep(4)} className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 transition-all shadow-lg shadow-green-100">Review Order</button>
+              <button onClick={() => setStep(2)} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition">← Back</button>
+              <button onClick={() => setStep(4)} className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 shadow-lg shadow-green-100">Review Order</button>
             </div>
           </div>
         )}
@@ -633,16 +554,16 @@ export default function RegistrationForm() {
                 </div>
               )}
 
-              {/* Guests Summary */}
+              {/* Guests Breakdown */}
               {totalMeals > 0 && (
                 <div className="border-b border-slate-200 pb-4">
                   <div className="flex justify-between font-black text-sm text-slate-900 uppercase tracking-tight mb-2">
-                    <span>Dinner Guests ({totalMeals})</span>
+                    <span>Guests ({totalMeals})</span>
                     <span className="font-mono text-slate-400">FREE</span>
                   </div>
                   <div className="text-[10px] font-bold text-slate-500 uppercase space-y-1">
-                    {formData.registrantGuests.map((g, i) => <div key={i}>• {formData.firstName}'s Guest: {g.category} {g.shirtSize && `(Shirt: ${g.shirtSize.toUpperCase()})`}</div>)}
-                    {formData.partnerGuests.map((g, i) => <div key={i}>• {formData.partnerName}'s Guest: {g.category} {g.shirtSize && `(Shirt: ${g.shirtSize.toUpperCase()})`}</div>)}
+                    {formData.registrantGuests.map((g, i) => <div key={i}>• {formData.firstName}'s Guest: {g.name || 'UNNAMED'} ({g.category}) {g.shirtSize && `| Shirt: ${g.shirtSize.toUpperCase()}`}</div>)}
+                    {formData.partnerGuests.map((g, i) => <div key={i}>• {formData.partnerName}'s Guest: {g.name || 'UNNAMED'} ({g.category}) {g.shirtSize && `| Shirt: ${g.shirtSize.toUpperCase()}`}</div>)}
                   </div>
                 </div>
               )}
@@ -655,13 +576,7 @@ export default function RegistrationForm() {
             
             <div className="flex justify-between items-center pt-6 border-t border-slate-100">
               <button onClick={() => setStep(3)} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition">← Back</button>
-              <button 
-                onClick={handleSubmit} 
-                disabled={loading}
-                className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg shadow-green-100 flex items-center gap-2"
-              >
-                {loading ? 'Processing...' : 'Submit Registration'}
-              </button>
+              <button onClick={handleSubmit} disabled={loading} className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 shadow-lg shadow-green-100 flex items-center gap-2">{loading ? 'Processing...' : 'Submit Registration'}</button>
             </div>
           </div>
         )}
