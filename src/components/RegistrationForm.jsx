@@ -28,7 +28,6 @@ export default function RegistrationForm() {
   const [validationErrors, setValidationErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [guestOwner, setGuestOwner] = useState('registrant'); // 'registrant' or 'partner'
   const [showEventButtons, setShowEventButtons] = useState(true); // Control which view on Step 2
   const [showPartnerDecision, setShowPartnerDecision] = useState(false); // Show partner decision screen
 
@@ -56,13 +55,6 @@ export default function RegistrationForm() {
   const cleanPhone = (phone) => {
     if (!phone) return '';
     return phone.replace(/\D/g, ''); // Remove all non-digits
-  };
-
-  // Calculate event fee based on partner's selected event
-  const calculateEventFee = (eventType) => {
-    if (eventType === 'saturday') return 50;
-    if (eventType === 'both') return 50;
-    return 0;
   };
 
   // Calculate total due (event fee + donation)
@@ -176,13 +168,13 @@ export default function RegistrationForm() {
     const cleanedFormData = {
       ...formData,
       phone: cleanPhone(formData.phone),
+      partnerPhone: cleanPhone(formData.partnerPhone),
     };
     
     setLoading(true);
-    setSubmitted(true);
 
     try {
-      await fetch('/api/register', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -191,36 +183,43 @@ export default function RegistrationForm() {
         }),
       });
 
+      if (!response.ok) throw new Error('Submission failed');
+
       alert(`✓ Registration submitted!\nConfirmation sent to ${formData.email}`);
+      setSubmitted(true);
       
-      setStep(1);
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        shirtSize: '',
-        eventType: '',
-        registrantDonation: 0,
-        partnerSelection: '',
-        partnerName: '',
-        partnerEmail: '',
-        partnerPhone: '',
-        partnerShirtSize: '',
-        partnerEventType: '',
-        partnerDonation: 0,
-        registrantGuests: [],
-        partnerGuests: [],
-      });
-      setValidationErrors({});
+      // Reset after brief delay
+      setTimeout(() => {
+        setStep(1);
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          shirtSize: '',
+          eventType: '',
+          registrantDonation: 0,
+          partnerSelection: '',
+          partnerName: '',
+          partnerEmail: '',
+          partnerPhone: '',
+          partnerShirtSize: '',
+          partnerEventType: '',
+          partnerDonation: 0,
+          registrantGuests: [],
+          partnerGuests: [],
+        });
+        setValidationErrors({});
+        setSubmitted(false);
+        setShowEventButtons(true);
+        setShowPartnerDecision(false);
+      }, 2000);
+
     } catch (error) {
       console.error('Submission failed:', error);
       alert('❌ Submission failed. Please try again.');
     } finally {
       setLoading(false);
-      setSubmitted(false);
-      setShowEventButtons(true);
-      setShowPartnerDecision(false);
     }
   };
 
@@ -255,29 +254,29 @@ export default function RegistrationForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">First Name *</label>
-                <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full" placeholder="Ex: John" />
+                <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full rounded-xl border-slate-200 focus:border-green-600 focus:ring-green-600" placeholder="Ex: Mike" />
               </div>
               <div>
                 <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Last Name *</label>
-                <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full" placeholder="Ex: Doe" />
+                <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full rounded-xl border-slate-200 focus:border-green-600 focus:ring-green-600" placeholder="Ex: Morrell" />
               </div>
             </div>
 
             <div className="mb-6">
               <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Email Address *</label>
-              <input type="email" name="email" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} className={`w-full ${validationErrors.email ? 'border-red-500 bg-red-50' : ''}`} placeholder="john@example.com" />
-              {validationErrors.email && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.email}</p>}
+              <input type="email" name="email" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.email ? 'border-red-500 bg-red-50' : 'border-slate-200'} focus:border-green-600 focus:ring-green-600`} placeholder="mike@example.com" />
+              {validationErrors.email && <p className="text-red-500 text-xs mt-2 font-bold uppercase tracking-tighter">❌ {validationErrors.email}</p>}
             </div>
 
             <div className="mb-6">
               <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Mobile Phone *</label>
-              <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full ${validationErrors.phone ? 'border-red-500 bg-red-50' : ''}`} placeholder="(555) 555-5555" />
-              {validationErrors.phone && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.phone}</p>}
+              <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.phone ? 'border-red-500 bg-red-50' : 'border-slate-200'} focus:border-green-600 focus:ring-green-600`} placeholder="(555) 555-5555" />
+              {validationErrors.phone && <p className="text-red-500 text-xs mt-2 font-bold uppercase tracking-tighter">❌ {validationErrors.phone}</p>}
             </div>
 
             <div className="mb-8">
               <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Shirt Size *</label>
-              <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full">
+              <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full rounded-xl border-slate-200 focus:border-green-600 focus:ring-green-600">
                 <option value="">Select size...</option>
                 <option value="adult-s">Small</option>
                 <option value="adult-m">Medium</option>
@@ -289,7 +288,7 @@ export default function RegistrationForm() {
 
             <div className="flex justify-between items-center pt-6 border-t border-slate-100">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Step 1/4</span>
-              <button onClick={() => setStep(2)} disabled={!canProceed()} className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg">
+              <button onClick={() => setStep(2)} disabled={!canProceed()} className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg shadow-green-100">
                 Continue
               </button>
             </div>
@@ -353,7 +352,7 @@ export default function RegistrationForm() {
           </div>
         )}
 
-        {/* Step 3: Partner/Donation/Guests */}
+        {/* Step 3: Final Details */}
         {step === 3 && (
           <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 animate-fade-in">
             <h2 className="text-2xl font-black mb-8 text-slate-900 uppercase tracking-tight">Final Details</h2>
@@ -365,11 +364,11 @@ export default function RegistrationForm() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                   <div>
                     <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Name *</label>
-                    <input type="text" name="partnerName" value={formData.partnerName} onChange={handleInputChange} className="w-full" placeholder="Ex: Jane Doe" />
+                    <input type="text" name="partnerName" value={formData.partnerName} onChange={handleInputChange} className="w-full rounded-xl border-slate-200" placeholder="Ex: Jane Doe" />
                   </div>
                   <div>
                     <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Email</label>
-                    <input type="email" name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} onBlur={handleBlur} className={`w-full ${validationErrors.partnerEmail ? 'border-red-500 bg-red-50' : ''}`} placeholder="jane@example.com" />
+                    <input type="email" name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl ${validationErrors.partnerEmail ? 'border-red-500 bg-red-50' : 'border-slate-200'}`} placeholder="jane@example.com" />
                     {validationErrors.partnerEmail && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.partnerEmail}</p>}
                   </div>
                 </div>
@@ -377,12 +376,11 @@ export default function RegistrationForm() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                   <div>
                     <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Phone</label>
-                    <input type="tel" name="partnerPhone" value={formData.partnerPhone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full ${validationErrors.partnerPhone ? 'border-red-500 bg-red-50' : ''}`} placeholder="(555) 555-5555" />
-                    {validationErrors.partnerPhone && <p className="text-red-500 text-xs mt-2 font-bold">❌ {validationErrors.partnerPhone}</p>}
+                    <input type="tel" name="partnerPhone" value={formData.partnerPhone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full rounded-xl border-slate-200`} placeholder="(555) 555-5555" />
                   </div>
                   <div>
                     <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Shirt Size</label>
-                    <select name="partnerShirtSize" value={formData.partnerShirtSize} onChange={handleInputChange} className="w-full">
+                    <select name="partnerShirtSize" value={formData.partnerShirtSize} onChange={handleInputChange} className="w-full rounded-xl border-slate-200">
                       <option value="">Select size...</option>
                       <option value="adult-s">Small</option>
                       <option value="adult-m">Medium</option>
@@ -396,7 +394,7 @@ export default function RegistrationForm() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Event Type *</label>
-                    <select name="partnerEventType" value={formData.partnerEventType} onChange={handleInputChange} className="w-full">
+                    <select name="partnerEventType" value={formData.partnerEventType} onChange={handleInputChange} className="w-full rounded-xl border-slate-200">
                       <option value="">Select event...</option>
                       <option value="saturday">Saturday Only ($50)</option>
                       <option value="both">Both Days ($50)</option>
@@ -407,7 +405,7 @@ export default function RegistrationForm() {
                     <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Partner Donation</label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
-                      <input type="number" name="partnerDonation" value={formData.partnerDonation} onChange={handleInputChange} className="w-full pl-8" placeholder="0" />
+                      <input type="number" name="partnerDonation" value={formData.partnerDonation} onChange={handleInputChange} className="w-full pl-8 rounded-xl border-slate-200" placeholder="0" />
                     </div>
                   </div>
                 </div>
@@ -419,7 +417,7 @@ export default function RegistrationForm() {
               <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Your Optional Donation for the Jeffersons</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
-                <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className="w-full pl-8" placeholder="0" />
+                <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className="w-full pl-8 rounded-xl border-slate-200" placeholder="0" />
               </div>
             </div>
 
@@ -448,7 +446,7 @@ export default function RegistrationForm() {
                         <select 
                           value={guest.category} 
                           onChange={(e) => handleGuestInputChange('registrant', index, 'category', e.target.value)}
-                          className="w-full text-sm"
+                          className="w-full text-sm rounded-lg border-slate-200"
                         >
                           <option value="adult">Adult</option>
                           <option value="child">Child (Under 12)</option>
@@ -462,7 +460,7 @@ export default function RegistrationForm() {
                           <select 
                             value={guest.shirtSize} 
                             onChange={(e) => handleGuestInputChange('registrant', index, 'shirtSize', e.target.value)}
-                            className="w-full text-sm"
+                            className="w-full text-sm rounded-lg border-slate-200"
                           >
                             <option value="adult-s">Adult S</option>
                             <option value="adult-m">Adult M</option>
@@ -495,7 +493,7 @@ export default function RegistrationForm() {
               <button 
                 onClick={() => setStep(4)} 
                 disabled={formData.partnerSelection === 'partner' && (!formData.partnerName || !formData.partnerEventType)}
-                className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg"
+                className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg shadow-green-100"
               >
                 Review Order
               </button>
@@ -526,9 +524,9 @@ export default function RegistrationForm() {
 
               {formData.partnerSelection === 'partner' && (
                 <>
-                  <div className="flex justify-between font-bold">
+                  <div className="flex justify-between font-bold border-t border-slate-200 pt-3">
                     <span className="text-slate-500 uppercase text-xs tracking-widest">
-                      {formData.partnerName}'s Registration ({formData.partnerEventType})
+                      Partner: {formData.partnerName} ({formData.partnerEventType})
                     </span>
                     <span className="text-slate-900 font-mono">
                       ${formData.partnerEventType !== 'non-golfer' ? '50.00' : '0.00'}
@@ -544,7 +542,7 @@ export default function RegistrationForm() {
               )}
 
               {formData.registrantGuests.length > 0 && (
-                <div className="flex justify-between font-bold">
+                <div className="flex justify-between font-bold border-t border-slate-200 pt-3">
                   <span className="text-slate-500 uppercase text-xs tracking-widest">
                     Guests ({formData.registrantGuests.length})
                   </span>
@@ -552,7 +550,7 @@ export default function RegistrationForm() {
                 </div>
               )}
 
-              <div className="flex justify-between font-black text-lg border-t border-slate-200 pt-3">
+              <div className="flex justify-between font-black text-xl border-t-2 border-slate-900 pt-4 mt-4">
                 <span className="text-slate-900 uppercase tracking-tighter">Total Due</span>
                 <span className="text-green-700 font-mono">${calculateTotalDue()}.00</span>
               </div>
@@ -565,7 +563,7 @@ export default function RegistrationForm() {
               <button 
                 onClick={handleSubmit} 
                 disabled={loading}
-                className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 transition-all shadow-lg flex items-center gap-2"
+                className="px-10 py-4 bg-green-700 text-white rounded-2xl font-black uppercase tracking-tighter hover:bg-green-800 disabled:opacity-30 transition-all shadow-lg shadow-green-100 flex items-center gap-2"
               >
                 {loading ? 'Processing...' : 'Submit Registration'}
               </button>
