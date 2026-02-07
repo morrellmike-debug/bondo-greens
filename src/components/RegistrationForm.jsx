@@ -95,6 +95,12 @@ export default function RegistrationForm() {
     }));
   };
 
+  const handleGuestInputChange = (index, field, value) => {
+    const updatedGuests = [...formData.registrantGuests];
+    updatedGuests[index] = { ...updatedGuests[index], [field]: value };
+    setFormData(prev => ({ ...prev, registrantGuests: updatedGuests }));
+  };
+
   const handleBlur = (e) => {
     const { name, value } = e.target;
     const errors = { ...validationErrors };

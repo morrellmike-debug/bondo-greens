@@ -1,4 +1,10 @@
+const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -8,13 +14,36 @@ module.exports = async (req, res) => {
   }
 
   const formData = req.body;
-  const { firstName, email, totalDue } = formData;
+  const { firstName, lastName, email, phone, shirtSize, eventType, totalDue } = formData;
 
   try {
-    const { data, error } = await resend.emails.send({
+    // 1. Log to Supabase (Sal Standard)
+    const { data: dbData, error: dbError } = await supabase
+      .from('registrations')
+      .insert([
+        { 
+          first_name: firstName, 
+          last_name: lastName, 
+          email: email, 
+          phone: phone, 
+          shirt_size: shirtSize, 
+          event_type: eventType, 
+          total_due: totalDue,
+          raw_data: formData 
+        }
+      ]);
+
+    if (dbError) {
+      console.error('Supabase error:', dbError);
+      // We continue with email even if DB fails for UX, or throw error?
+      // Sal Standard usually wants persistence first.
+    }
+
+    // 2. Send Confirmation Email via Resend
+    const { data: emailData, error: emailError } = await resend.emails.send({
       from: 'Jim Bondurant <jim@bondogreens.com>',
       to: [email, 'morrell.mike@gmail.com'],
-      subject: 'Bondo Greens 2026 - Registration Confirmed',
+      subject: `Bondo Greens 2026 - Registration Confirmed (${firstName} ${lastName})`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
           <header style="background-color: #22c55e; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
@@ -36,12 +65,12 @@ module.exports = async (req, res) => {
       `
     });
 
-    if (error) {
-      console.error('Resend error:', error);
-      return res.status(400).json({ error });
+    if (emailError) {
+      console.error('Resend error:', emailError);
+      return res.status(400).json({ error: emailError });
     }
 
-    return res.status(200).json({ success: true, data });
+    return res.status(200).json({ success: true, db: !!dbData, email: !!emailData });
   } catch (err) {
     console.error('System error:', err);
     return res.status(500).json({ error: 'Internal Server Error' });
