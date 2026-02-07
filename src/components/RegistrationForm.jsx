@@ -188,7 +188,7 @@ export default function RegistrationForm() {
       alert(`✓ Registration submitted!\nConfirmation sent to ${formData.email}`);
       setSubmitted(true);
       
-      // Reset after brief delay
+      // Reset after delay
       setTimeout(() => {
         setStep(1);
         setFormData({
