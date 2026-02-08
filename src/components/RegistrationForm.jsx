@@ -22,6 +22,7 @@ export default function RegistrationForm() {
   });
   const [validationErrors, setValidationErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [submitResult, setSubmitResult] = useState(null); // { status: 'success'|'error', message, emailSent }
   const [guestOwner, setGuestOwner] = useState('registrant');
   const [showEventButtons, setShowEventButtons] = useState(true);
   const [showPartnerDecision, setShowPartnerDecision] = useState(false);
@@ -83,17 +84,36 @@ export default function RegistrationForm() {
 
   const handleSubmit = async () => {
     setLoading(true);
+    setSubmitResult(null);
     try {
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, totalDue: calculateTotalDue() }),
       });
-      if (!res.ok) throw new Error();
-      alert('✓ Registration submitted! Check your email.');
-      window.location.reload();
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setSubmitResult({
+          status: 'error',
+          message: data.error || 'Submission failed. Please try again.',
+          details: data.details || null,
+        });
+        return;
+      }
+
+      setSubmitResult({
+        status: 'success',
+        message: data.message,
+        emailSent: data.emailSent,
+        registrationId: data.registrationId,
+      });
+      setStep(5); // advance to confirmation screen
     } catch {
-      alert('❌ Submission failed. Please try again.');
+      setSubmitResult({
+        status: 'error',
+        message: 'Could not reach the server. Please check your connection and try again.',
+      });
     } finally {
       setLoading(false);
     }
@@ -102,6 +122,8 @@ export default function RegistrationForm() {
   const canProceedStep1 = () => {
     return formData.firstName && formData.lastName && validateEmail(formData.email) && validatePhone(formData.phone) && formData.shirtSize;
   };
+
+  const totalMeals = formData.registrantGuests.length + formData.partnerGuests.length;
 
   return (
     <div className="max-w-2xl mx-auto p-4 dark:text-white transition-colors pb-20">
@@ -271,8 +293,61 @@ export default function RegistrationForm() {
               <span className="text-green-600">${calculateTotalDue()}</span>
             </div>
           </div>
+          {submitResult?.status === 'error' && (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-sm text-red-700 dark:text-red-400">
+              <p className="font-bold">{submitResult.message}</p>
+              {submitResult.details && (
+                <ul className="mt-2 list-disc pl-4 text-xs">
+                  {(Array.isArray(submitResult.details) ? submitResult.details : [submitResult.details]).map((d, i) => (
+                    <li key={i}>{d}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <button onClick={handleSubmit} disabled={loading} className="w-full py-6 bg-green-600 text-white rounded-3xl font-black uppercase text-xl shadow-2xl shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition-all">{loading ? 'Processing...' : 'Complete Registration'}</button>
           <button onClick={() => setStep(3)} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">← Back</button>
+        </div>
+      )}
+
+      {step === 5 && submitResult?.status === 'success' && (
+        <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl shadow-xl space-y-6 text-center">
+          <div className="w-20 h-20 mx-auto bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-4xl">
+            &#10003;
+          </div>
+          <h2 className="text-2xl font-black uppercase italic tracking-tight dark:text-white">You're Registered!</h2>
+          <p className="text-slate-600 dark:text-slate-400">{submitResult.message}</p>
+
+          {submitResult.emailSent ? (
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl text-sm text-green-700 dark:text-green-400">
+              A confirmation email has been sent to <strong>{formData.email}</strong>. Check your inbox!
+            </div>
+          ) : (
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl text-sm text-yellow-700 dark:text-yellow-400">
+              Your registration is saved, but we couldn't send a confirmation email. Don't worry — we have your info on file.
+            </div>
+          )}
+
+          <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border dark:border-slate-800 text-left space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500 dark:text-slate-400">Name</span>
+              <span className="font-bold dark:text-white">{formData.firstName} {formData.lastName}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500 dark:text-slate-400">Event</span>
+              <span className="font-bold dark:text-white uppercase">{formData.eventType}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500 dark:text-slate-400">Shirt Size</span>
+              <span className="font-bold dark:text-white">{formData.shirtSize}</span>
+            </div>
+            <div className="flex justify-between text-sm border-t dark:border-slate-700 pt-2 mt-2">
+              <span className="text-slate-500 dark:text-slate-400">Total Due</span>
+              <span className="font-black text-green-600 text-lg">${calculateTotalDue()}</span>
+            </div>
+          </div>
+
+          <button onClick={() => window.location.reload()} className="w-full py-5 border-2 border-green-600 text-green-600 rounded-2xl font-black uppercase hover:bg-green-50 dark:hover:bg-green-900/20 transition-all">Register Another Person</button>
         </div>
       )}
     </div>
