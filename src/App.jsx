@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import './index.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import RegistrationForm from './components/RegistrationForm';
-import CheckInDashboard from './components/CheckInDashboard';
 import AdminPanel from './components/AdminPanel';
 import AdminGate from './components/AdminGate';
 import DevAuthModal from './components/DevAuthModal';
@@ -70,16 +69,7 @@ function AppContent() {
         {currentPage === 'registration' && <RegistrationForm />}
         {currentPage === 'admin' && (
           <AdminGate>
-            <div className="space-y-12">
-              <AdminPanel />
-              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-                <div className="p-8 border-b dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-                  <h3 className="text-2xl font-black uppercase italic text-slate-900 dark:text-white">Tournament Roster</h3>
-                  <p className="text-slate-500 text-sm font-medium">Live check-in and registration tracking</p>
-                </div>
-                <CheckInDashboard showInventory={true} showRoster={true} />
-              </div>
-            </div>
+            <AdminPanel />
           </AdminGate>
         )}
       </main>

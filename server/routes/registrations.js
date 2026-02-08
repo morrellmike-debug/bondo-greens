@@ -203,4 +203,40 @@ router.post('/:event_id/:registration_id/checkin', async (req, res, next) => {
   }
 });
 
+// POST /api/registrations/:event_id/:registration_id/undo-checkin - Reverse a check-in
+router.post('/:event_id/:registration_id/undo-checkin', async (req, res, next) => {
+  try {
+    const { event_id, registration_id } = req.params;
+
+    const result = await req.app.locals.db.query(
+      `UPDATE registrations
+       SET checked_in = false, checked_in_at = NULL
+       WHERE id = $1 AND event_id = $2
+       RETURNING id`,
+      [registration_id, event_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Registration not found' });
+    }
+
+    // Log audit
+    req.app.locals.auditLog?.push({
+      event_id,
+      action: 'registration.undo_checkin',
+      resource_type: 'registration',
+      resource_id: registration_id,
+      status: 'success'
+    });
+
+    res.json({
+      id: result.rows[0].id,
+      message: 'Check-in reversed successfully'
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
