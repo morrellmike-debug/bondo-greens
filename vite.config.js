@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      '/api/auth': 'http://localhost:3001',
       '/api/events': 'http://localhost:3001',
       '/api/admin': 'http://localhost:3001',
       '/api/registrations': 'http://localhost:3001',

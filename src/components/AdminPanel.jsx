@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 import CheckInDashboard from './CheckInDashboard';
 
 export default function AdminPanel() {
+  const { adminToken } = useAuth();
   const [events, setEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
@@ -49,11 +51,15 @@ export default function AdminPanel() {
     }
   };
 
+  const authHeaders = adminToken
+    ? { 'Authorization': `Bearer ${adminToken}` }
+    : {};
+
   const fetchDashboard = async () => {
     setLoading(prev => ({ ...prev, dashboard: true }));
     setErrors(prev => ({ ...prev, dashboard: null }));
     try {
-      const res = await fetch(`/api/admin/events/${selectedEventId}/dashboard`);
+      const res = await fetch(`/api/admin/events/${selectedEventId}/dashboard`, { headers: authHeaders });
       if (!res.ok) throw new Error('Failed to load dashboard');
       setDashboard(await res.json());
     } catch (err) {
@@ -67,7 +73,7 @@ export default function AdminPanel() {
     setLoading(prev => ({ ...prev, registrations: true }));
     setErrors(prev => ({ ...prev, registrations: null }));
     try {
-      const res = await fetch(`/api/admin/events/${selectedEventId}/registrations?page=${page}`);
+      const res = await fetch(`/api/admin/events/${selectedEventId}/registrations?page=${page}`, { headers: authHeaders });
       if (!res.ok) throw new Error('Failed to load registrations');
       const data = await res.json();
       setRegistrations(data.registrations);
@@ -85,7 +91,7 @@ export default function AdminPanel() {
     setLoading(prev => ({ ...prev, inventory: true }));
     setErrors(prev => ({ ...prev, inventory: null }));
     try {
-      const res = await fetch(`/api/admin/events/${selectedEventId}/inventory`);
+      const res = await fetch(`/api/admin/events/${selectedEventId}/inventory`, { headers: authHeaders });
       if (!res.ok) throw new Error('Failed to load inventory');
       const data = await res.json();
       setInventory(data.inventory);

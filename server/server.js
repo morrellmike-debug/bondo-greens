@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const registrationRoutes = require('./routes/registrations');
 const adminRoutes = require('./routes/admin');
 const eventRoutes = require('./routes/events');
+const requireAdmin = require('./middleware/requireAdmin');
 
 const app = express();
 
@@ -43,7 +44,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/events', eventRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', requireAdmin, adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
