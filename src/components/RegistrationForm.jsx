@@ -130,11 +130,11 @@ export default function RegistrationForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase text-slate-400">First Name *</label>
-              <input name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Ex: Mike" />
+              <input name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Ex: Payne" />
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase text-slate-400">Last Name *</label>
-              <input name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Ex: Morrell" />
+              <input name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Ex: Stewart" />
             </div>
           </div>
           <div className="space-y-1">
@@ -184,8 +184,8 @@ export default function RegistrationForm() {
           ) : showPartnerDecision ? (
             <div className="space-y-3">
               <h3 className="font-black text-slate-900 dark:text-white uppercase text-sm mb-4">2-Man Scramble Partner</h3>
-              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'partner'})); setShowPartnerDecision(false); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black hover:border-green-600">I Have a Partner</button>
-              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'assign'})); setStep(3); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black hover:border-green-600">Assign me a partner</button>
+              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'partner'})); setShowPartnerDecision(false); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black text-slate-900 dark:text-white dark:border-slate-800 hover:border-green-600 transition-all cursor-pointer">I Have a Partner</button>
+              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'assign'})); setStep(3); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black text-slate-900 dark:text-white dark:border-slate-800 hover:border-green-600 transition-all cursor-pointer">Assign Me a Partner</button>
             </div>
           ) : (
             <div className="space-y-4">
