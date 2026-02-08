@@ -96,24 +96,6 @@ export default function AdminPanel() {
     }
   };
 
-  const updateInventoryItem = async (itemId, field, delta) => {
-    const item = inventory.find(i => i.id === itemId);
-    if (!item) return;
-    const newValue = Math.max(0, (item[field] || 0) + delta);
-    try {
-      const res = await fetch(`/api/admin/events/${selectedEventId}/inventory/${itemId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [field]: newValue }),
-      });
-      if (!res.ok) throw new Error('Update failed');
-      const updated = await res.json();
-      setInventory(prev => prev.map(i => i.id === itemId ? updated : i));
-    } catch (err) {
-      console.error('Inventory update error:', err);
-    }
-  };
-
   // Refresh dashboard after check-in changes
   const handleCheckInChange = useCallback(() => {
     if (selectedEventId) fetchDashboard();
@@ -142,7 +124,6 @@ export default function AdminPanel() {
     { id: 'registrations', label: `Registrations${dashboard ? ` (${dashboard.registrations.total})` : ''}` },
     { id: 'checkins', label: 'Check-ins' },
     { id: 'inventory', label: 'Inventory' },
-    { id: 'admins', label: 'Admins' },
   ];
 
   // ── Loading gate for events ──
@@ -236,7 +217,7 @@ export default function AdminPanel() {
                 {/* Stat Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   <StatCard
-                    label="Registrations"
+                    label="Registered"
                     value={dashboard.registrations.total}
                     sub={selectedEvent?.max_capacity ? `of ${selectedEvent.max_capacity} capacity` : null}
                   />
@@ -246,20 +227,20 @@ export default function AdminPanel() {
                     sub={`of ${dashboard.registrations.total} registered`}
                   />
                   <StatCard
+                    label="No-Shows"
+                    value={dashboard.registrations.no_shows}
+                    sub="registered but not checked in"
+                  />
+                  <StatCard
                     label="Check-In %"
                     value={dashboard.registrations.total > 0
                       ? Math.round((dashboard.registrations.checked_in / dashboard.registrations.total) * 100) + '%'
                       : '0%'
                     }
                   />
-                  <StatCard
-                    label="Merchandise Items"
-                    value={dashboard.merchandise.length}
-                    sub="item types tracked"
-                  />
                 </div>
 
-                {/* Status Breakdown + Merchandise */}
+                {/* Status Breakdown + Shirts by Size */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div className="bg-white rounded-lg shadow p-6">
                     <h3 className="font-semibold text-gray-800 mb-4">Registration Status</h3>
@@ -272,19 +253,21 @@ export default function AdminPanel() {
                   </div>
 
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h3 className="font-semibold text-gray-800 mb-4">Merchandise Snapshot</h3>
-                    {dashboard.merchandise.length === 0 ? (
-                      <p className="text-gray-500 text-sm">No merchandise tracked for this event.</p>
+                    <h3 className="font-semibold text-gray-800 mb-4">Shirts by Size</h3>
+                    {(!dashboard.shirts_by_size || dashboard.shirts_by_size.length === 0) ? (
+                      <p className="text-gray-500 text-sm">No shirt data from registrations.</p>
                     ) : (
                       <div className="space-y-2">
-                        {dashboard.merchandise.map(item => (
-                          <div key={item.id} className="flex justify-between text-sm border-b pb-2">
-                            <span className="text-gray-700 capitalize">{item.item_type} — {item.size}</span>
-                            <span className="font-mono text-gray-800">
-                              {item.total_checked_in || 0}/{item.total_available || 0}
-                            </span>
+                        {dashboard.shirts_by_size.map(row => (
+                          <div key={row.size} className="flex justify-between text-sm border-b pb-2">
+                            <span className="text-gray-700 uppercase">{row.size}</span>
+                            <span className="font-mono font-bold text-green-700">{row.total}</span>
                           </div>
                         ))}
+                        <div className="flex justify-between pt-2 border-t font-bold text-gray-800 text-sm">
+                          <span>TOTAL</span>
+                          <span>{dashboard.shirts_by_size.reduce((sum, r) => sum + parseInt(r.total), 0)}</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -401,7 +384,7 @@ export default function AdminPanel() {
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="font-semibold text-gray-800">Merchandise Inventory</h2>
-              <p className="text-sm text-gray-500 mt-1">Use +/- buttons to adjust distributed counts</p>
+              <p className="text-sm text-gray-500 mt-1">Current inventory counts for this event</p>
             </div>
 
             {loading.inventory ? (
@@ -413,7 +396,7 @@ export default function AdminPanel() {
               </div>
             ) : inventory.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                No inventory items for this event. Add items via the database.
+                No inventory items for this event.
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -426,42 +409,20 @@ export default function AdminPanel() {
                       <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">Allocated</th>
                       <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">Distributed</th>
                       <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">Remaining</th>
-                      <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">Progress</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     {inventory.map(item => {
                       const remaining = (item.total_available || 0) - (item.total_checked_in || 0);
-                      const pct = item.total_available > 0
-                        ? Math.round((item.total_checked_in || 0) / item.total_available * 100)
-                        : 0;
                       return (
                         <tr key={item.id} className="hover:bg-gray-50">
                           <td className="px-6 py-3 text-sm font-medium text-gray-800 capitalize">{item.item_type}</td>
                           <td className="px-6 py-3 text-sm text-gray-800 uppercase">{item.size}</td>
                           <td className="px-6 py-3 text-sm text-center text-gray-800">{item.total_available || 0}</td>
                           <td className="px-6 py-3 text-sm text-center text-gray-800">{item.total_allocated || 0}</td>
-                          <td className="px-6 py-3 text-sm text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => updateInventoryItem(item.id, 'total_checked_in', -1)}
-                                className="w-7 h-7 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm"
-                              >−</button>
-                              <span className="font-mono w-8 text-center">{item.total_checked_in || 0}</span>
-                              <button
-                                onClick={() => updateInventoryItem(item.id, 'total_checked_in', 1)}
-                                className="w-7 h-7 rounded bg-green-100 hover:bg-green-200 text-green-700 font-bold text-sm"
-                              >+</button>
-                            </div>
-                          </td>
+                          <td className="px-6 py-3 text-sm text-center font-mono">{item.total_checked_in || 0}</td>
                           <td className={`px-6 py-3 text-sm text-center font-bold ${remaining <= 2 ? 'text-red-600' : 'text-gray-800'}`}>
                             {remaining}
-                          </td>
-                          <td className="px-6 py-3">
-                            <div className="w-24 mx-auto bg-gray-200 rounded h-2">
-                              <div className="bg-green-600 h-2 rounded" style={{ width: `${Math.min(pct, 100)}%` }} />
-                            </div>
-                            <div className="text-xs text-center text-gray-500 mt-1">{pct}%</div>
                           </td>
                         </tr>
                       );
@@ -470,20 +431,6 @@ export default function AdminPanel() {
                 </table>
               </div>
             )}
-          </div>
-        )}
-
-        {/* ════════ ADMINS TAB ════════ */}
-        {activeTab === 'admins' && (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="font-semibold text-gray-800">Manage Admins & Permissions</h2>
-              <p className="text-sm text-gray-600 mt-1">Admin authentication coming soon — currently using dev password gate</p>
-            </div>
-            <div className="p-6 text-center text-gray-500">
-              <p>Admin management will be available once JWT authentication is implemented.</p>
-              <p className="text-xs mt-2 text-gray-400">See server/routes/auth.js for the planned auth flow.</p>
-            </div>
           </div>
         )}
       </div>

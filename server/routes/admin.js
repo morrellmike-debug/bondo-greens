@@ -45,18 +45,41 @@ router.get('/events/:event_id/dashboard', async (req, res, next) => {
       [event_id]
     );
 
+    // Aggregate shirts by size from registration JSONB data
+    const shirtResult = await req.app.locals.db.query(
+      `SELECT
+         s.value->>'size' AS size,
+         SUM(COALESCE((s.value->>'qty')::int, 1)) AS total
+       FROM registrations r
+       CROSS JOIN LATERAL jsonb_array_elements(r.shirts) AS s(value)
+       WHERE r.event_id = $1
+         AND r.status != 'cancelled'
+         AND r.shirts IS NOT NULL
+         AND jsonb_array_length(r.shirts) > 0
+       GROUP BY s.value->>'size'
+       ORDER BY s.value->>'size'`,
+      [event_id]
+    );
+
     const counts = countResult.rows[0];
+    const total = parseInt(counts.total) || 0;
+    const checked_in = parseInt(counts.checked_in) || 0;
+    const cancelled = parseInt(counts.status_cancelled) || 0;
+    const no_shows = total - checked_in - cancelled;
+
     res.json({
       event: eventResult.rows[0],
       registrations: {
-        total: parseInt(counts.total) || 0,
-        checked_in: parseInt(counts.checked_in) || 0,
+        total,
+        checked_in,
+        no_shows: Math.max(no_shows, 0),
         by_status: {
           registered: parseInt(counts.status_registered) || 0,
           confirmed: parseInt(counts.status_confirmed) || 0,
-          cancelled: parseInt(counts.status_cancelled) || 0,
+          cancelled,
         }
       },
+      shirts_by_size: shirtResult.rows,
       merchandise: merchResult.rows
     });
 
