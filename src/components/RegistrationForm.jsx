@@ -21,8 +21,9 @@ export default function RegistrationForm() {
     partnerGuests: [],
   });
   const [validationErrors, setValidationErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [submitResult, setSubmitResult] = useState(null); // { status: 'success'|'error', message, emailSent }
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);    // string | null
+  const [submitSuccess, setSubmitSuccess] = useState(null); // { emailSent: boolean } | null
   const [guestOwner, setGuestOwner] = useState('registrant');
   const [showEventButtons, setShowEventButtons] = useState(true);
   const [showPartnerDecision, setShowPartnerDecision] = useState(false);
@@ -83,8 +84,9 @@ export default function RegistrationForm() {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    setSubmitResult(null);
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(null);
     try {
       const res = await fetch('/api/register', {
         method: 'POST',
@@ -94,28 +96,16 @@ export default function RegistrationForm() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setSubmitResult({
-          status: 'error',
-          message: data.error || 'Submission failed. Please try again.',
-          details: data.details || null,
-        });
+        setSubmitError(data.message || 'Submission failed. Please try again.');
         return;
       }
 
-      setSubmitResult({
-        status: 'success',
-        message: data.message,
-        emailSent: data.emailSent,
-        registrationId: data.registrationId,
-      });
-      setStep(5); // advance to confirmation screen
+      setSubmitSuccess({ emailSent: data.emailSent });
+      setStep(5);
     } catch {
-      setSubmitResult({
-        status: 'error',
-        message: 'Could not reach the server. Please check your connection and try again.',
-      });
+      setSubmitError('Could not reach the server. Please check your connection and try again.');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -229,7 +219,7 @@ export default function RegistrationForm() {
             <button onClick={() => setGuestOwner('registrant')} className={`flex-1 py-3 rounded-lg font-black uppercase text-[10px] transition-all ${guestOwner==='registrant'?'bg-white dark:bg-slate-700 text-green-600 shadow-sm':'text-slate-400'}`}>{formData.firstName || 'My'} Guests</button>
             {formData.partnerName && <button onClick={() => setGuestOwner('partner')} className={`flex-1 py-3 rounded-lg font-black uppercase text-[10px] transition-all ${guestOwner==='partner'?'bg-white dark:bg-slate-700 text-green-600 shadow-sm':'text-slate-400'}`}>{formData.partnerName}'s Guests</button>}
           </div>
-          
+
           <div className="space-y-4">
             {(guestOwner === 'registrant' ? formData.registrantGuests : formData.partnerGuests).map((g, idx) => (
               <div key={idx} className="p-5 border dark:border-slate-800 rounded-2xl relative bg-slate-50 dark:bg-slate-800/30">
@@ -244,7 +234,7 @@ export default function RegistrationForm() {
             ))}
             <button onClick={() => addGuest(guestOwner)} className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl text-slate-400 font-black uppercase text-xs hover:bg-slate-50 dark:hover:bg-slate-800/50">+ Add Dinner Guest</button>
           </div>
-          
+
           <button onClick={() => setStep(4)} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg shadow-green-100 dark:shadow-none">Review Order</button>
           <button onClick={() => setStep(2)} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest">← Back</button>
         </div>
@@ -293,38 +283,30 @@ export default function RegistrationForm() {
               <span className="text-green-600">${calculateTotalDue()}</span>
             </div>
           </div>
-          {submitResult?.status === 'error' && (
+          {submitError && (
             <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-sm text-red-700 dark:text-red-400">
-              <p className="font-bold">{submitResult.message}</p>
-              {submitResult.details && (
-                <ul className="mt-2 list-disc pl-4 text-xs">
-                  {(Array.isArray(submitResult.details) ? submitResult.details : [submitResult.details]).map((d, i) => (
-                    <li key={i}>{d}</li>
-                  ))}
-                </ul>
-              )}
+              <p className="font-bold">{submitError}</p>
             </div>
           )}
-          <button onClick={handleSubmit} disabled={loading} className="w-full py-6 bg-green-600 text-white rounded-3xl font-black uppercase text-xl shadow-2xl shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition-all">{loading ? 'Processing...' : 'Complete Registration'}</button>
-          <button onClick={() => setStep(3)} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">← Back</button>
+          <button onClick={handleSubmit} disabled={isSubmitting} className="w-full py-6 bg-green-600 text-white rounded-3xl font-black uppercase text-xl shadow-2xl shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50">{isSubmitting ? 'Processing...' : 'Complete Registration'}</button>
+          <button onClick={() => setStep(3)} disabled={isSubmitting} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">← Back</button>
         </div>
       )}
 
-      {step === 5 && submitResult?.status === 'success' && (
+      {step === 5 && submitSuccess && (
         <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl shadow-xl space-y-6 text-center">
           <div className="w-20 h-20 mx-auto bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-4xl">
             &#10003;
           </div>
           <h2 className="text-2xl font-black uppercase italic tracking-tight dark:text-white">You're Registered!</h2>
-          <p className="text-slate-600 dark:text-slate-400">{submitResult.message}</p>
 
-          {submitResult.emailSent ? (
+          {submitSuccess.emailSent ? (
             <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl text-sm text-green-700 dark:text-green-400">
-              A confirmation email has been sent to <strong>{formData.email}</strong>. Check your inbox!
+              Registration complete! A confirmation email has been sent to your inbox.
             </div>
           ) : (
             <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl text-sm text-yellow-700 dark:text-yellow-400">
-              Your registration is saved, but we couldn't send a confirmation email. Don't worry — we have your info on file.
+              Registration complete! We had trouble sending the confirmation email. If you do not receive it, please contact us.
             </div>
           )}
 
