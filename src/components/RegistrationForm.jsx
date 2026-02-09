@@ -217,6 +217,15 @@ export default function RegistrationForm() {
                   <select value={g.category} onChange={(e) => handleGuestChange(guestOwner, idx, 'category', e.target.value)} className="w-full p-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
                     <option value="adult">Adult</option><option value="child">Child</option><option value="toddler">Toddler</option><option value="infant">Infant</option>
                   </select>
+                  {(g.category === 'adult' || g.category === 'child') && (
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size</label>
+                      <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className="w-full p-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                        <option value="">Select Size...</option>
+                        <option value="S">Small</option><option value="M">Medium</option><option value="L">Large</option><option value="XL">XL</option><option value="XXL">2XL</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
