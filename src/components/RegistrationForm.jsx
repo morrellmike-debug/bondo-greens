@@ -221,7 +221,26 @@ export default function RegistrationForm() {
                     <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size</label>
                     <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className="w-full p-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
                       <option value="">Select Size...</option>
-                      <option value="S">Small</option><option value="M">Medium</option><option value="L">Large</option><option value="XL">XL</option><option value="XXL">2XL</option>
+                      {g.category === 'adult' && (
+                        <>
+                          <option value="S">Small</option><option value="M">Medium</option><option value="L">Large</option><option value="XL">XL</option><option value="XXL">2XL</option>
+                        </>
+                      )}
+                      {g.category === 'child' && (
+                        <>
+                          <option value="YS">Youth Small</option><option value="YM">Youth Medium</option><option value="YL">Youth Large</option><option value="YXL">Youth XL</option>
+                        </>
+                      )}
+                      {g.category === 'toddler' && (
+                        <>
+                          <option value="2T">2T</option><option value="3T">3T</option><option value="4T">4T</option><option value="5T">5T</option>
+                        </>
+                      )}
+                      {g.category === 'infant' && (
+                        <>
+                          <option value="6M">6 Months</option><option value="12M">12 Months</option><option value="18M">18 Months</option><option value="24M">24 Months</option>
+                        </>
+                      )}
                     </select>
                   </div>
                 </div>
