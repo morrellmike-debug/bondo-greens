@@ -21,6 +21,7 @@ export default function RegistrationForm() {
     partnerGuests: [],
   });
   const [validationErrors, setValidationErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [guestOwner, setGuestOwner] = useState('registrant');
   const [showEventButtons, setShowEventButtons] = useState(true);
@@ -55,6 +56,10 @@ export default function RegistrationForm() {
       return;
     }
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleBlur = (fieldName) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }));
   };
 
   const handleGuestChange = (owner, idx, field, value) => {
@@ -140,13 +145,13 @@ export default function RegistrationForm() {
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Email Address *</label>
-            <input name="email" value={formData.email} onChange={handleInputChange} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white ${formData.email && !validateEmail(formData.email) ? 'border-red-500 dark:border-red-500' : ''}`} placeholder="mike@example.com" />
-            {formData.email && !validateEmail(formData.email) && <p className="text-red-500 text-xs mt-1">Please enter a valid email address</p>}
+            <input name="email" value={formData.email} onChange={handleInputChange} onBlur={() => handleBlur('email')} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white ${touched.email && formData.email && !validateEmail(formData.email) ? 'border-red-500 dark:border-red-500' : ''}`} placeholder="mike@example.com" />
+            {touched.email && formData.email && !validateEmail(formData.email) && <p className="text-red-500 text-xs mt-1">Please enter a valid email address</p>}
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Mobile Phone * (10 Digits)</label>
-            <input name="phone" value={formData.phone} onChange={handleInputChange} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white ${formData.phone && !validatePhone(formData.phone) ? 'border-red-500 dark:border-red-500' : ''}`} placeholder="5551234567" />
-            {formData.phone && !validatePhone(formData.phone) && <p className="text-red-500 text-xs mt-1">Please enter a valid 10-digit phone number</p>}
+            <input name="phone" value={formData.phone} onChange={handleInputChange} onBlur={() => handleBlur('phone')} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white ${touched.phone && formData.phone && !validatePhone(formData.phone) ? 'border-red-500 dark:border-red-500' : ''}`} placeholder="5551234567" />
+            {touched.phone && formData.phone && !validatePhone(formData.phone) && <p className="text-red-500 text-xs mt-1">Please enter a valid 10-digit phone number</p>}
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size *</label>
@@ -198,8 +203,8 @@ export default function RegistrationForm() {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Partner Email *</label>
-                <input name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white ${formData.partnerEmail && !validateEmail(formData.partnerEmail) ? 'border-red-500 dark:border-red-500' : ''}`} placeholder="partner@email.com" />
-                {formData.partnerEmail && !validateEmail(formData.partnerEmail) && <p className="text-red-500 text-xs mt-1">Please enter a valid email address</p>}
+                <input name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} onBlur={() => handleBlur('partnerEmail')} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white ${touched.partnerEmail && formData.partnerEmail && !validateEmail(formData.partnerEmail) ? 'border-red-500 dark:border-red-500' : ''}`} placeholder="partner@email.com" />
+                {touched.partnerEmail && formData.partnerEmail && !validateEmail(formData.partnerEmail) && <p className="text-red-500 text-xs mt-1">Please enter a valid email address</p>}
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Partner Event *</label>
@@ -235,26 +240,44 @@ export default function RegistrationForm() {
                   </select>
                   <div className="space-y-1">
                     <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size</label>
-                    <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className="w-full p-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                    <select
+                      key={`${idx}-${g.category}`}
+                      value={g.shirtSize || ''}
+                      onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)}
+                      className="w-full p-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    >
                       <option value="">Select Size...</option>
                       {g.category === 'adult' && (
                         <>
-                          <option value="S">Small</option><option value="M">Medium</option><option value="L">Large</option><option value="XL">XL</option><option value="XXL">2XL</option>
+                          <option value="S">Small</option>
+                          <option value="M">Medium</option>
+                          <option value="L">Large</option>
+                          <option value="XL">XL</option>
+                          <option value="XXL">2XL</option>
                         </>
                       )}
                       {g.category === 'child' && (
                         <>
-                          <option value="YS">Youth Small</option><option value="YM">Youth Medium</option><option value="YL">Youth Large</option><option value="YXL">Youth XL</option>
+                          <option value="YS">Youth Small</option>
+                          <option value="YM">Youth Medium</option>
+                          <option value="YL">Youth Large</option>
+                          <option value="YXL">Youth XL</option>
                         </>
                       )}
                       {g.category === 'toddler' && (
                         <>
-                          <option value="2T">2T</option><option value="3T">3T</option><option value="4T">4T</option><option value="5T">5T</option>
+                          <option value="2T">2T</option>
+                          <option value="3T">3T</option>
+                          <option value="4T">4T</option>
+                          <option value="5T">5T</option>
                         </>
                       )}
                       {g.category === 'infant' && (
                         <>
-                          <option value="6M">6 Months</option><option value="12M">12 Months</option><option value="18M">18 Months</option><option value="24M">24 Months</option>
+                          <option value="6M">6 Months</option>
+                          <option value="12M">12 Months</option>
+                          <option value="18M">18 Months</option>
+                          <option value="24M">24 Months</option>
                         </>
                       )}
                     </select>
