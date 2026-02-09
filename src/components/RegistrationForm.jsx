@@ -61,7 +61,16 @@ export default function RegistrationForm() {
     const fieldName = owner === 'registrant' ? 'registrantGuests' : 'partnerGuests';
     setFormData(prev => ({
       ...prev,
-      [fieldName]: prev[fieldName].map((g, i) => i === idx ? { ...g, [field]: value } : g)
+      [fieldName]: prev[fieldName].map((g, i) => {
+        if (i === idx) {
+          // Reset shirt size when category changes
+          if (field === 'category') {
+            return { ...g, [field]: value, shirtSize: '' };
+          }
+          return { ...g, [field]: value };
+        }
+        return g;
+      })
     }));
   };
 
@@ -103,6 +112,10 @@ export default function RegistrationForm() {
     return formData.firstName && formData.lastName && validateEmail(formData.email) && validatePhone(formData.phone) && formData.shirtSize;
   };
 
+  const calculateTotalMeals = () => {
+    return formData.registrantGuests.length + formData.partnerGuests.length;
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4 dark:text-white transition-colors pb-20">
       {/* Progress */}
@@ -127,11 +140,13 @@ export default function RegistrationForm() {
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Email Address *</label>
-            <input name="email" value={formData.email} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="mike@example.com" />
+            <input name="email" value={formData.email} onChange={handleInputChange} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white ${formData.email && !validateEmail(formData.email) ? 'border-red-500 dark:border-red-500' : ''}`} placeholder="mike@example.com" />
+            {formData.email && !validateEmail(formData.email) && <p className="text-red-500 text-xs mt-1">Please enter a valid email address</p>}
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Mobile Phone * (10 Digits)</label>
-            <input name="phone" value={formData.phone} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="5551234567" />
+            <input name="phone" value={formData.phone} onChange={handleInputChange} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white ${formData.phone && !validatePhone(formData.phone) ? 'border-red-500 dark:border-red-500' : ''}`} placeholder="5551234567" />
+            {formData.phone && !validatePhone(formData.phone) && <p className="text-red-500 text-xs mt-1">Please enter a valid 10-digit phone number</p>}
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size *</label>
@@ -183,7 +198,8 @@ export default function RegistrationForm() {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Partner Email *</label>
-                <input name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="partner@email.com" />
+                <input name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white ${formData.partnerEmail && !validateEmail(formData.partnerEmail) ? 'border-red-500 dark:border-red-500' : ''}`} placeholder="partner@email.com" />
+                {formData.partnerEmail && !validateEmail(formData.partnerEmail) && <p className="text-red-500 text-xs mt-1">Please enter a valid email address</p>}
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Partner Event *</label>
@@ -193,7 +209,7 @@ export default function RegistrationForm() {
                   <option value="both">Both Days ($50)</option>
                 </select>
               </div>
-              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !formData.partnerEmail || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
+              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !formData.partnerEmail || !validateEmail(formData.partnerEmail) || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
             </div>
           )}
           <button onClick={() => {setStep(1); setShowEventButtons(true); setShowPartnerDecision(false);}} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest mt-4">← Back to Profile</button>
@@ -283,10 +299,10 @@ export default function RegistrationForm() {
               </div>
             )}
 
-            {totalMeals > 0 && (
+            {calculateTotalMeals() > 0 && (
               <div className="border-t dark:border-slate-700 pt-4">
                 <div className="flex justify-between font-black text-slate-900 dark:text-white uppercase text-sm">
-                  <span>Dinner Guests ({totalMeals})</span>
+                  <span>Dinner Guests ({calculateTotalMeals()})</span>
                   <span className="text-slate-400">FREE</span>
                 </div>
               </div>
