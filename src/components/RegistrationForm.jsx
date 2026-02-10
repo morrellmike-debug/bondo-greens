@@ -2,23 +2,29 @@ import { useState, useEffect } from 'react';
 
 const SHIRT_SIZES = {
   adult: [
+    { value: 'XS', label: 'XS' },
     { value: 'S', label: 'Small' },
     { value: 'M', label: 'Medium' },
     { value: 'L', label: 'Large' },
     { value: 'XL', label: 'XL' },
     { value: 'XXL', label: '2XL' },
+    { value: 'XXXL', label: '3XL' },
   ],
   child: [
+    { value: 'YXS', label: 'Youth XS' },
     { value: 'YS', label: 'Youth Small' },
     { value: 'YM', label: 'Youth Medium' },
     { value: 'YL', label: 'Youth Large' },
+    { value: 'YXL', label: 'Youth XL' },
   ],
   toddler: [
     { value: '2T', label: '2T' },
     { value: '3T', label: '3T' },
     { value: '4T', label: '4T' },
+    { value: '5T', label: '5T' },
   ],
   infant: [
+    { value: 'NB', label: 'Newborn' },
     { value: '6M', label: '6 Months' },
     { value: '12M', label: '12 Months' },
     { value: '18M', label: '18 Months' },
@@ -236,7 +242,10 @@ export default function RegistrationForm() {
             <label className={LABEL_BASE}>Shirt Size *</label>
             <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className={SELECT_BASE}>
               <option value="">Select Size...</option>
-              <option value="S">Small</option><option value="M">Medium</option><option value="L">Large</option><option value="XL">XL</option><option value="XXL">2XL</option>
+              <option value="none">No Shirt Needed</option>
+              {SHIRT_SIZES.adult.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
             </select>
           </div>
           <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800">
@@ -283,6 +292,16 @@ export default function RegistrationForm() {
               {renderField('partnerEmail', 'Partner Email *', 'partner@email.com')}
               {renderField('partnerPhone', 'Partner Phone * (10 Digits)', '5551234567')}
               <div className="space-y-1">
+                <label className={LABEL_BASE}>Partner Shirt Size *</label>
+                <select name="partnerShirtSize" value={formData.partnerShirtSize} onChange={handleInputChange} className={SELECT_BASE}>
+                  <option value="">Select Size...</option>
+                  <option value="none">No Shirt Needed</option>
+                  {SHIRT_SIZES.adult.map(s => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
                 <label className={LABEL_BASE}>Partner Event *</label>
                 <select name="partnerEventType" value={formData.partnerEventType} onChange={handleInputChange} className={SELECT_BASE}>
                   <option value="">Select Event...</option>
@@ -290,7 +309,7 @@ export default function RegistrationForm() {
                   <option value="both">Both Days ($50)</option>
                 </select>
               </div>
-              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !validateEmail(formData.partnerEmail) || !validatePhone(formData.partnerPhone) || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
+              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !validateEmail(formData.partnerEmail) || !validatePhone(formData.partnerPhone) || !formData.partnerShirtSize || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
             </div>
           )}
           <button onClick={() => {setStep(1); setShowEventButtons(true); setShowPartnerDecision(false);}} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest mt-4">← Back to Profile</button>
@@ -316,6 +335,7 @@ export default function RegistrationForm() {
                   </select>
                   <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className={INPUT_SM}>
                     <option value="">Select Shirt Size...</option>
+                    <option value="none">No Shirt Needed</option>
                     {SHIRT_SIZES[g.category].map(s => (
                       <option key={s.value} value={s.value}>{s.label}</option>
                     ))}
@@ -358,6 +378,7 @@ export default function RegistrationForm() {
                 </div>
                 <div className="flex gap-2 text-[10px] font-bold text-slate-400 uppercase">
                   <span>{formData.partnerEventType}</span>
+                  <span>• SHIRT: {formData.partnerShirtSize}</span>
                   {parseInt(formData.partnerDonation) > 0 && <span className="text-blue-500">• DONATION: ${formData.partnerDonation}</span>}
                 </div>
                 {renderGuestList(formData.partnerGuests, formData.partnerName)}

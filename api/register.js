@@ -38,8 +38,11 @@ export default async function handler(req, res) {
   // Server-side validation
   const errors = validatePayload(formData);
   if (errors.length > 0) {
-    return res.status(400).json({ error: errors.join('; ') });
+    return res.status(400).json({ success: false, error: errors.join('; ') });
   }
+
+  // Format phone as digits only
+  const cleanPhone = (phone || '').replace(/\D/g, '');
 
   try {
     // 1. Save to Supabase — fail the request if this fails
@@ -49,7 +52,7 @@ export default async function handler(req, res) {
         first_name: firstName,
         last_name: lastName,
         email,
-        phone,
+        phone: cleanPhone,
         shirt_size: shirtSize,
         event_type: eventType,
         total_due: totalDue,
@@ -57,23 +60,26 @@ export default async function handler(req, res) {
       }]);
 
     if (dbError) {
-      console.error('Supabase error:', dbError);
-      return res.status(500).json({ error: 'Failed to save registration. Please try again.' });
+      console.error('Supabase error:', JSON.stringify(dbError));
+      return res.status(500).json({ success: false, error: `Registration failed: ${dbError.message || 'database error'}` });
     }
 
     // 2. Send confirmation email via Resend (best-effort — don't fail registration if email fails)
     let emailSent = false;
     try {
+      // Use custom domain if verified, otherwise fall back to Resend's onboarding address
+      const fromAddress = process.env.RESEND_FROM_EMAIL || 'Bondo Greens <onboarding@resend.dev>';
+
       const { error: emailError } = await resend.emails.send({
-        from: 'Bondo Greens <no-reply@bondogreens.com>',
+        from: fromAddress,
         to: [email, 'morrell.mike@gmail.com'],
         subject: `Bondo Greens 2026 - Registration Confirmed (${firstName} ${lastName})`,
         react: React.createElement(ConfirmationEmail, {
           firstName,
           lastName,
           email,
-          shirtSize,
-          eventType,
+          shirtSize: shirtSize || '',
+          eventType: eventType || '',
           registrantDonation: formData.registrantDonation,
           partnerName: formData.partnerName,
           partnerSelection: formData.partnerSelection,
@@ -86,17 +92,17 @@ export default async function handler(req, res) {
       });
 
       if (emailError) {
-        console.error('Resend error:', emailError);
+        console.error('Resend error:', JSON.stringify(emailError));
       } else {
         emailSent = true;
       }
     } catch (emailErr) {
-      console.error('Email send error:', emailErr);
+      console.error('Email send error:', emailErr.message || emailErr);
     }
 
     return res.status(201).json({ success: true, emailSent });
   } catch (err) {
     console.error('System error:', err);
-    return res.status(500).json({ error: 'Internal server error. Please try again.' });
+    return res.status(500).json({ success: false, error: `Server error: ${err.message || 'unknown'}` });
   }
 }
