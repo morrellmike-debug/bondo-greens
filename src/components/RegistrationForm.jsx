@@ -18,7 +18,12 @@ const SHIRT_SIZES = {
     { value: '3T', label: '3T' },
     { value: '4T', label: '4T' },
   ],
-  infant: [],
+  infant: [
+    { value: '6M', label: '6 Months' },
+    { value: '12M', label: '12 Months' },
+    { value: '18M', label: '18 Months' },
+    { value: '24M', label: '24 Months' },
+  ],
 };
 
 export default function RegistrationForm() {
@@ -284,17 +289,12 @@ export default function RegistrationForm() {
                   <select value={g.category} onChange={(e) => handleGuestChange(guestOwner, idx, 'category', e.target.value)} className="w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
                     <option value="adult">Adult</option><option value="child">Child</option><option value="toddler">Toddler</option><option value="infant">Infant</option>
                   </select>
-                  {SHIRT_SIZES[g.category]?.length > 0 && (
-                    <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className="w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
-                      <option value="">Select Shirt Size...</option>
-                      {SHIRT_SIZES[g.category].map(s => (
-                        <option key={s.value} value={s.value}>{s.label}</option>
-                      ))}
-                    </select>
-                  )}
-                  {g.category === 'infant' && (
-                    <p className="text-xs text-slate-400 italic">No shirt for infants</p>
-                  )}
+                  <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className="w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
+                    <option value="">Select Shirt Size...</option>
+                    {SHIRT_SIZES[g.category].map(s => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             ))}
