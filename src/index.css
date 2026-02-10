@@ -10,6 +10,15 @@
   body {
     @apply transition-colors duration-300;
   }
+
+  /* Dark mode defaults for inputs — in @layer base so Tailwind utilities can override */
+  @media (prefers-color-scheme: dark) {
+    input, select {
+      background-color: #1e293b;
+      border-color: #334155;
+      color: #f8fafc;
+    }
+  }
 }
 
 /* Light Mode Defaults (Gray-50 background, dark text) */
@@ -39,11 +48,4 @@
   .border-slate-100 { border-color: var(--border-subtle) !important; }
   .bg-slate-50 { background-color: rgba(30, 41, 59, 0.5) !important; }
   .bg-blue-50 { background-color: rgba(30, 58, 138, 0.2) !important; }
-  
-  /* Input Overrides — no !important so Tailwind utility classes (dark:, border-red-500, etc.) can override */
-  input, select {
-    background-color: #1e293b;
-    border-color: #334155;
-    color: #f8fafc;
-  }
 }

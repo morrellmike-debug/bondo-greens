@@ -162,22 +162,34 @@ export default function RegistrationForm() {
     return formData.firstName && formData.lastName && validateEmail(formData.email) && validatePhone(formData.phone) && formData.shirtSize;
   };
 
-  // Helper to render a validated input field
-  const renderField = (name, label, placeholder, options = {}) => {
+  // Helper to render a validated input field — uses inline styles so CSS cascade can never hide errors
+  const renderField = (name, label, placeholder) => {
     const hasError = !!validationErrors[name];
     return (
       <div className="space-y-1">
-        <label className={`text-[10px] font-black uppercase ${hasError ? 'text-red-500' : 'text-slate-400'}`}>{label}</label>
+        <label
+          className="text-[10px] font-black uppercase"
+          style={{ color: hasError ? '#ef4444' : '#94a3b8' }}
+        >
+          {label}
+        </label>
         <input
           name={name}
-          value={options.value !== undefined ? options.value : formData[name]}
+          value={formData[name]}
           onChange={handleInputChange}
           onBlur={handleBlur}
-          className={`w-full p-4 rounded-xl border-2 transition-colors ${hasError ? 'border-red-500 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white'}`}
+          className="w-full p-4 rounded-xl"
+          style={{
+            border: hasError ? '2px solid #ef4444' : '2px solid #334155',
+            backgroundColor: hasError ? 'rgba(127, 29, 29, 0.25)' : '#1e293b',
+            color: hasError ? '#fca5a5' : '#f8fafc',
+          }}
           placeholder={placeholder}
         />
         {hasError && (
-          <p className="text-red-500 text-xs font-bold mt-1">{validationErrors[name]}</p>
+          <p style={{ color: '#ef4444', fontSize: '12px', fontWeight: 700, marginTop: '4px' }}>
+            {validationErrors[name]}
+          </p>
         )}
       </div>
     );
@@ -265,7 +277,7 @@ export default function RegistrationForm() {
                   <option value="both">Both Days ($50)</option>
                 </select>
               </div>
-              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !validateEmail(formData.partnerEmail) || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
+              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !validateEmail(formData.partnerEmail) || !validatePhone(formData.partnerPhone) || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
             </div>
           )}
           <button onClick={() => {setStep(1); setShowEventButtons(true); setShowPartnerDecision(false);}} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest mt-4">← Back to Profile</button>
