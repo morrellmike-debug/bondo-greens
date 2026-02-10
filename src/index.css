@@ -1,9 +1,6 @@
-@import "tailwindcss";
-
-@theme {
-  --color-kelly-green: #22c55e;
-  --color-kelly-dark: #15803d;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Base Styles */
 @layer base {
