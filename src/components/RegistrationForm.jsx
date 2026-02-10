@@ -57,6 +57,29 @@ export default function RegistrationForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    const errors = { ...validationErrors };
+
+    if (name === 'email' && value) {
+      if (!validateEmail(value)) {
+        errors.email = 'Please enter a valid email address';
+      } else {
+        delete errors.email;
+      }
+    }
+
+    if (name === 'phone' && value) {
+      if (!validatePhone(value)) {
+        errors.phone = 'Phone number must be exactly 10 digits';
+      } else {
+        delete errors.phone;
+      }
+    }
+
+    setValidationErrors(errors);
+  };
+
   const handleGuestChange = (owner, idx, field, value) => {
     const fieldName = owner === 'registrant' ? 'registrantGuests' : 'partnerGuests';
     setFormData(prev => ({
@@ -127,11 +150,31 @@ export default function RegistrationForm() {
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Email Address *</label>
-            <input name="email" value={formData.email} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="mike@example.com" />
+            <input
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:text-white ${validationErrors.email ? 'border-red-500 dark:border-red-500' : 'dark:border-slate-700'}`}
+              placeholder="mike@example.com"
+            />
+            {validationErrors.email && (
+              <p className="text-red-500 text-xs font-bold mt-1">{validationErrors.email}</p>
+            )}
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Mobile Phone * (10 Digits)</label>
-            <input name="phone" value={formData.phone} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="5551234567" />
+            <input
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:text-white ${validationErrors.phone ? 'border-red-500 dark:border-red-500' : 'dark:border-slate-700'}`}
+              placeholder="5551234567"
+            />
+            {validationErrors.phone && (
+              <p className="text-red-500 text-xs font-bold mt-1">{validationErrors.phone}</p>
+            )}
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size *</label>
