@@ -7,10 +7,11 @@ import AdminGate from './components/AdminGate';
 import DevAuthModal from './components/DevAuthModal';
 
 function AppContent() {
-  const { isDevAuthenticated, isAdmin, adminUser, logoutAdmin } = useAuth();
+  const { isDev, isDevAuthenticated, isAdmin, adminUser, logoutAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState('registration');
 
-  if (!isDevAuthenticated) {
+  // Only gate with dev password in dev environments, not production
+  if (isDev && !isDevAuthenticated) {
     return <DevAuthModal />;
   }
 
