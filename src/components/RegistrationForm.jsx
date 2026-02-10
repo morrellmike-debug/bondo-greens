@@ -47,30 +47,19 @@ export default function RegistrationForm() {
     return total;
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (name === 'phone' || name === 'partnerPhone') {
-      const digits = value.replace(/\D/g, '').slice(0, 10);
-      setFormData(prev => ({ ...prev, [name]: digits }));
-      return;
-    }
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleBlur = (e) => {
-    const { name, value } = e.target;
+  const validateField = (name, value) => {
     const errors = { ...validationErrors };
 
-    if (name === 'email' && value) {
-      if (!validateEmail(value)) {
+    if (name === 'email') {
+      if (value && !validateEmail(value)) {
         errors.email = 'Please enter a valid email address';
       } else {
         delete errors.email;
       }
     }
 
-    if (name === 'phone' && value) {
-      if (!validatePhone(value)) {
+    if (name === 'phone') {
+      if (value && !validatePhone(value)) {
         errors.phone = 'Phone number must be exactly 10 digits';
       } else {
         delete errors.phone;
@@ -78,6 +67,29 @@ export default function RegistrationForm() {
     }
 
     setValidationErrors(errors);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'phone' || name === 'partnerPhone') {
+      const digits = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({ ...prev, [name]: digits }));
+      // Validate phone on change
+      if (name === 'phone') {
+        validateField('phone', digits);
+      }
+      return;
+    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Validate email on change
+    if (name === 'email') {
+      validateField('email', value);
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    validateField(name, value);
   };
 
   const handleGuestChange = (owner, idx, field, value) => {
