@@ -52,9 +52,25 @@ export default function RegistrationForm() {
     if (name === 'phone' || name === 'partnerPhone') {
       const digits = value.replace(/\D/g, '').slice(0, 10);
       setFormData(prev => ({ ...prev, [name]: digits }));
+      if (validationErrors[name]) {
+        setValidationErrors(prev => ({ ...prev, [name]: '' }));
+      }
       return;
     }
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    if (name === 'email' && value && !validateEmail(value)) {
+      setValidationErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+    }
+    if (name === 'phone' && value && !validatePhone(value)) {
+      setValidationErrors(prev => ({ ...prev, phone: 'Please enter a valid 10-digit phone number' }));
+    }
   };
 
   const handleGuestChange = (owner, idx, field, value) => {
@@ -127,11 +143,13 @@ export default function RegistrationForm() {
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Email Address *</label>
-            <input name="email" value={formData.email} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="mike@example.com" />
+            <input name="email" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:text-white ${validationErrors.email ? 'border-red-500 dark:border-red-500' : 'dark:border-slate-700'}`} placeholder="mike@example.com" />
+            {validationErrors.email && <p className="text-red-500 text-xs font-semibold mt-1">{validationErrors.email}</p>}
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Mobile Phone * (10 Digits)</label>
-            <input name="phone" value={formData.phone} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="5551234567" />
+            <input name="phone" value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:text-white ${validationErrors.phone ? 'border-red-500 dark:border-red-500' : 'dark:border-slate-700'}`} placeholder="5551234567" />
+            {validationErrors.phone && <p className="text-red-500 text-xs font-semibold mt-1">{validationErrors.phone}</p>}
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size *</label>
