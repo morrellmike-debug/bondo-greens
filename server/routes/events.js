@@ -7,7 +7,9 @@ router.get('/', async (req, res, next) => {
     const result = await req.app.locals.db.query(
       `SELECT id, name, description, location, event_date, status, registration_open
        FROM events
-       ORDER BY event_date DESC`
+       ORDER BY
+         CASE WHEN event_date >= CURRENT_DATE THEN 0 ELSE 1 END,
+         event_date ASC`
     );
     res.json(result.rows);
   } catch (error) {
