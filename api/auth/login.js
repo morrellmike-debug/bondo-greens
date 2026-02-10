@@ -47,6 +47,6 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error('Login error:', err);
-    return res.status(500).json({ error: 'Login failed. Please try again.' });
+    return res.status(500).json({ error: `Login error: ${err.message || String(err)}` });
   }
 }
