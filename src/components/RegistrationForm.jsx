@@ -242,6 +242,7 @@ export default function RegistrationForm() {
             <label className={LABEL_BASE}>Shirt Size *</label>
             <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className={SELECT_BASE}>
               <option value="">Select Size...</option>
+              <option value="none">No Shirt Needed</option>
               {SHIRT_SIZES.adult.map(s => (
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
@@ -294,6 +295,7 @@ export default function RegistrationForm() {
                 <label className={LABEL_BASE}>Partner Shirt Size *</label>
                 <select name="partnerShirtSize" value={formData.partnerShirtSize} onChange={handleInputChange} className={SELECT_BASE}>
                   <option value="">Select Size...</option>
+                  <option value="none">No Shirt Needed</option>
                   {SHIRT_SIZES.adult.map(s => (
                     <option key={s.value} value={s.value}>{s.label}</option>
                   ))}
@@ -333,6 +335,7 @@ export default function RegistrationForm() {
                   </select>
                   <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className={INPUT_SM}>
                     <option value="">Select Shirt Size...</option>
+                    <option value="none">No Shirt Needed</option>
                     {SHIRT_SIZES[g.category].map(s => (
                       <option key={s.value} value={s.value}>{s.label}</option>
                     ))}
