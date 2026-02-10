@@ -5,47 +5,8 @@
   --color-kelly-dark: #15803d;
 }
 
-/* Base Styles */
 @layer base {
   body {
     @apply transition-colors duration-300;
   }
-
-  /* Dark mode defaults for inputs — in @layer base so Tailwind utilities can override */
-  @media (prefers-color-scheme: dark) {
-    input, select {
-      background-color: #1e293b;
-      border-color: #334155;
-      color: #f8fafc;
-    }
-  }
-}
-
-/* Light Mode Defaults (Gray-50 background, dark text) */
-:root {
-  --bg-main: #f8fafc; /* gray-50 */
-  --bg-card: #ffffff;
-  --text-main: #0f172a; /* slate-900 */
-  --text-muted: #64748b; /* slate-500 */
-  --border-subtle: #f1f5f9; /* slate-100 */
-}
-
-/* Dark Mode Overrides (Deep Slate, not pure black) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-main: #020617; /* slate-950 */
-    --bg-card: #0f172a; /* slate-900 */
-    --text-main: #f8fafc; /* slate-50 */
-    --text-muted: #94a3b8; /* slate-400 */
-    --border-subtle: #1e293b; /* slate-800 */
-  }
-
-  /* Utility class overrides for components */
-  .bg-gray-50 { background-color: var(--bg-main) !important; }
-  .bg-white { background-color: var(--bg-card) !important; }
-  .text-slate-900 { color: var(--text-main) !important; }
-  .text-slate-500 { color: var(--text-muted) !important; }
-  .border-slate-100 { border-color: var(--border-subtle) !important; }
-  .bg-slate-50 { background-color: rgba(30, 41, 59, 0.5) !important; }
-  .bg-blue-50 { background-color: rgba(30, 58, 138, 0.2) !important; }
 }

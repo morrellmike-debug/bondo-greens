@@ -26,6 +26,13 @@ const SHIRT_SIZES = {
   ],
 };
 
+const INPUT_BASE = 'w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400';
+const INPUT_ERROR = 'w-full p-4 rounded-xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 text-red-900 dark:text-red-200 placeholder-red-300';
+const INPUT_SM = 'w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white';
+const SELECT_BASE = 'w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white';
+const LABEL_BASE = 'text-[10px] font-black uppercase text-slate-400';
+const LABEL_ERROR = 'text-[10px] font-black uppercase text-red-500';
+
 export default function RegistrationForm() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -109,7 +116,6 @@ export default function RegistrationForm() {
       [fieldName]: prev[fieldName].map((g, i) => {
         if (i !== idx) return g;
         const updated = { ...g, [field]: value };
-        // Reset shirt size when category changes (sizes differ per category)
         if (field === 'category') updated.shirtSize = '';
         return updated;
       })
@@ -162,34 +168,21 @@ export default function RegistrationForm() {
     return formData.firstName && formData.lastName && validateEmail(formData.email) && validatePhone(formData.phone) && formData.shirtSize;
   };
 
-  // Helper to render a validated input field — uses inline styles so CSS cascade can never hide errors
   const renderField = (name, label, placeholder) => {
     const hasError = !!validationErrors[name];
     return (
       <div className="space-y-1">
-        <label
-          className="text-[10px] font-black uppercase"
-          style={{ color: hasError ? '#ef4444' : '#94a3b8' }}
-        >
-          {label}
-        </label>
+        <label className={hasError ? LABEL_ERROR : LABEL_BASE}>{label}</label>
         <input
           name={name}
           value={formData[name]}
           onChange={handleInputChange}
           onBlur={handleBlur}
-          className="w-full p-4 rounded-xl"
-          style={{
-            border: hasError ? '2px solid #ef4444' : '2px solid #334155',
-            backgroundColor: hasError ? 'rgba(127, 29, 29, 0.25)' : '#1e293b',
-            color: hasError ? '#fca5a5' : '#f8fafc',
-          }}
+          className={hasError ? INPUT_ERROR : INPUT_BASE}
           placeholder={placeholder}
         />
         {hasError && (
-          <p style={{ color: '#ef4444', fontSize: '12px', fontWeight: 700, marginTop: '4px' }}>
-            {validationErrors[name]}
-          </p>
+          <p className="text-red-500 text-xs font-bold mt-1">{validationErrors[name]}</p>
         )}
       </div>
     );
@@ -209,19 +202,19 @@ export default function RegistrationForm() {
           <h2 className="text-2xl font-black uppercase italic tracking-tight dark:text-white">Step 1: Your Profile</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400">First Name *</label>
-              <input name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" placeholder="Ex: Mike" />
+              <label className={LABEL_BASE}>First Name *</label>
+              <input name="firstName" value={formData.firstName} onChange={handleInputChange} className={INPUT_BASE} placeholder="Ex: Mike" />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400">Last Name *</label>
-              <input name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" placeholder="Ex: Morrell" />
+              <label className={LABEL_BASE}>Last Name *</label>
+              <input name="lastName" value={formData.lastName} onChange={handleInputChange} className={INPUT_BASE} placeholder="Ex: Morrell" />
             </div>
           </div>
           {renderField('email', 'Email Address *', 'mike@example.com')}
           {renderField('phone', 'Mobile Phone * (10 Digits)', '5551234567')}
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size *</label>
-            <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
+            <label className={LABEL_BASE}>Shirt Size *</label>
+            <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className={SELECT_BASE}>
               <option value="">Select Size...</option>
               <option value="S">Small</option><option value="M">Medium</option><option value="L">Large</option><option value="XL">XL</option><option value="XXL">2XL</option>
             </select>
@@ -230,7 +223,7 @@ export default function RegistrationForm() {
             <p className="text-[10px] font-black uppercase mb-2 text-blue-700 dark:text-blue-400 tracking-widest">Optional Donation (Jeffersons)</p>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
-              <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className="w-full p-4 pl-8 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" placeholder="0" />
+              <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className={INPUT_BASE + ' pl-8'} placeholder="0" />
             </div>
           </div>
           <button onClick={() => setStep(2)} disabled={!canProceedStep1()} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg shadow-green-200 dark:shadow-none disabled:opacity-30">Continue</button>
@@ -258,20 +251,20 @@ export default function RegistrationForm() {
           ) : showPartnerDecision ? (
             <div className="space-y-3">
               <h3 className="font-black text-slate-900 dark:text-white uppercase text-sm mb-4">2-Man Scramble Partner</h3>
-              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'partner'})); setShowPartnerDecision(false); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black hover:border-green-600">I Have a Partner</button>
-              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'assign'})); setStep(3); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black hover:border-green-600">Assign me a partner</button>
+              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'partner'})); setShowPartnerDecision(false); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black hover:border-green-600 dark:border-slate-700 dark:text-white">I Have a Partner</button>
+              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'assign'})); setStep(3); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black hover:border-green-600 dark:border-slate-700 dark:text-white">Assign me a partner</button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400">Partner Name *</label>
-                <input name="partnerName" value={formData.partnerName} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" placeholder="Partner's Name" />
+                <label className={LABEL_BASE}>Partner Name *</label>
+                <input name="partnerName" value={formData.partnerName} onChange={handleInputChange} className={INPUT_BASE} placeholder="Partner's Name" />
               </div>
               {renderField('partnerEmail', 'Partner Email *', 'partner@email.com')}
               {renderField('partnerPhone', 'Partner Phone * (10 Digits)', '5551234567')}
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400">Partner Event *</label>
-                <select name="partnerEventType" value={formData.partnerEventType} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
+                <label className={LABEL_BASE}>Partner Event *</label>
+                <select name="partnerEventType" value={formData.partnerEventType} onChange={handleInputChange} className={SELECT_BASE}>
                   <option value="">Select Event...</option>
                   <option value="saturday">Saturday Only ($50)</option>
                   <option value="both">Both Days ($50)</option>
@@ -294,14 +287,14 @@ export default function RegistrationForm() {
 
           <div className="space-y-4">
             {(guestOwner === 'registrant' ? formData.registrantGuests : formData.partnerGuests).map((g, idx) => (
-              <div key={idx} className="p-5 border dark:border-slate-800 rounded-2xl relative bg-slate-50 dark:bg-slate-800/30">
+              <div key={idx} className="p-5 border-2 border-slate-200 dark:border-slate-800 rounded-2xl relative bg-slate-50 dark:bg-slate-800/30">
                 <button onClick={() => removeGuest(guestOwner, idx)} className="absolute top-4 right-4 text-red-400 font-bold">REMOVE</button>
                 <div className="grid grid-cols-1 gap-4 mt-2">
-                  <input placeholder="Guest Name" value={g.name} onChange={(e) => handleGuestChange(guestOwner, idx, 'name', e.target.value)} className="w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" />
-                  <select value={g.category} onChange={(e) => handleGuestChange(guestOwner, idx, 'category', e.target.value)} className="w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
+                  <input placeholder="Guest Name" value={g.name} onChange={(e) => handleGuestChange(guestOwner, idx, 'name', e.target.value)} className={INPUT_SM} />
+                  <select value={g.category} onChange={(e) => handleGuestChange(guestOwner, idx, 'category', e.target.value)} className={INPUT_SM}>
                     <option value="adult">Adult</option><option value="child">Child</option><option value="toddler">Toddler</option><option value="infant">Infant</option>
                   </select>
-                  <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className="w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
+                  <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className={INPUT_SM}>
                     <option value="">Select Shirt Size...</option>
                     {SHIRT_SIZES[g.category].map(s => (
                       <option key={s.value} value={s.value}>{s.label}</option>
