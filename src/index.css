@@ -40,10 +40,15 @@
   .bg-slate-50 { background-color: rgba(30, 41, 59, 0.5) !important; }
   .bg-blue-50 { background-color: rgba(30, 58, 138, 0.2) !important; }
   
-  /* Input Overrides */
+  /* Input Overrides — skip border override on inputs with data-error so validation red borders show */
   input, select {
     background-color: #1e293b !important;
-    border-color: #334155 !important;
     color: #f8fafc !important;
+  }
+  input:not([data-error]), select {
+    border-color: #334155 !important;
+  }
+  input[data-error] {
+    border-color: #ef4444 !important;
   }
 }

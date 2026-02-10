@@ -142,14 +142,14 @@ export default function RegistrationForm() {
             </div>
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400">Email Address *</label>
-            <input name="email" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:text-white ${validationErrors.email ? 'border-red-500 dark:border-red-500' : 'dark:border-slate-700'}`} placeholder="mike@example.com" />
-            {validationErrors.email && <p className="text-red-500 text-xs font-semibold mt-1">{validationErrors.email}</p>}
+            <label className={`text-[10px] font-black uppercase ${validationErrors.email ? 'text-red-500' : 'text-slate-400'}`}>Email Address *</label>
+            <input name="email" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} data-error={validationErrors.email ? true : undefined} className={`w-full p-4 rounded-xl border-2 dark:text-white transition-colors ${validationErrors.email ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700 dark:bg-slate-800'}`} placeholder="mike@example.com" />
+            {validationErrors.email && <p className="text-red-500 text-xs font-bold mt-1">{validationErrors.email}</p>}
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400">Mobile Phone * (10 Digits)</label>
-            <input name="phone" value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} className={`w-full p-4 rounded-xl border dark:bg-slate-800 dark:text-white ${validationErrors.phone ? 'border-red-500 dark:border-red-500' : 'dark:border-slate-700'}`} placeholder="5551234567" />
-            {validationErrors.phone && <p className="text-red-500 text-xs font-semibold mt-1">{validationErrors.phone}</p>}
+            <label className={`text-[10px] font-black uppercase ${validationErrors.phone ? 'text-red-500' : 'text-slate-400'}`}>Mobile Phone * (10 Digits)</label>
+            <input name="phone" value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} data-error={validationErrors.phone ? true : undefined} className={`w-full p-4 rounded-xl border-2 dark:text-white transition-colors ${validationErrors.phone ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700 dark:bg-slate-800'}`} placeholder="5551234567" />
+            {validationErrors.phone && <p className="text-red-500 text-xs font-bold mt-1">{validationErrors.phone}</p>}
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size *</label>
