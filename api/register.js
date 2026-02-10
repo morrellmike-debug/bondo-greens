@@ -7,7 +7,6 @@ function validatePayload(body) {
   if (!body.lastName || typeof body.lastName !== 'string') errors.push('Last name is required');
   if (!body.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) errors.push('A valid email is required');
   if (!body.phone || body.phone.replace(/\D/g, '').length !== 10) errors.push('A valid 10-digit phone is required');
-  if (!body.shirtSize) errors.push('Shirt size is required');
   if (!body.eventType) errors.push('Event type is required');
   return errors;
 }
@@ -137,10 +136,47 @@ export default async function handler(req, res) {
   const cleanPhone = (phone || '').replace(/\D/g, '');
 
   try {
+    // Look up the active event to link registration
+    let eventId = null;
+    const { data: activeEvent } = await supabase
+      .from('events')
+      .select('id')
+      .in('status', ['scheduled', 'active'])
+      .order('event_date', { ascending: true })
+      .limit(1)
+      .single();
+    if (activeEvent) eventId = activeEvent.id;
+
+    // Build JSONB columns for admin portal compatibility
+    const shirts = [];
+    if (shirtSize && shirtSize !== 'none') shirts.push({ size: shirtSize, qty: 1 });
+    if (formData.partnerShirtSize && formData.partnerShirtSize !== 'none') shirts.push({ size: formData.partnerShirtSize, qty: 1 });
+    (formData.registrantGuests || []).forEach(g => {
+      if (g.shirtSize && g.shirtSize !== 'none') shirts.push({ size: g.shirtSize, qty: 1 });
+    });
+    (formData.partnerGuests || []).forEach(g => {
+      if (g.shirtSize && g.shirtSize !== 'none') shirts.push({ size: g.shirtSize, qty: 1 });
+    });
+
+    const allGuests = [...(formData.registrantGuests || []), ...(formData.partnerGuests || [])];
+    const meals = [];
+    const mealCounts = {};
+    allGuests.forEach(g => {
+      const cat = g.category || 'adult';
+      mealCounts[cat] = (mealCounts[cat] || 0) + 1;
+    });
+    Object.entries(mealCounts).forEach(([type, qty]) => meals.push({ type, qty }));
+
+    const eventsAttending = [{ event: eventType, confirmed: true }];
+    if (formData.partnerEventType) {
+      eventsAttending.push({ event: formData.partnerEventType, who: 'partner', confirmed: true });
+    }
+
     // 1. Save to Supabase — fail the request if this fails
     const { error: dbError } = await supabase
       .from('registrations')
       .insert([{
+        event_id: eventId,
         first_name: firstName,
         last_name: lastName,
         email,
@@ -149,6 +185,10 @@ export default async function handler(req, res) {
         event_type: eventType,
         total_due: totalDue,
         raw_data: formData,
+        events_attending: eventsAttending,
+        shirts,
+        meals,
+        guests: allGuests,
       }]);
 
     if (dbError) {

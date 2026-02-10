@@ -145,7 +145,7 @@ export default function AdminPanel() {
     return (
       <div className="text-center py-20">
         <div className="text-lg text-red-600 mb-4">{errors.events}</div>
-        <p className="text-gray-500 text-sm mb-4">Make sure the Express backend is running on port 3001.</p>
+        <p className="text-gray-500 text-sm mb-4">Could not load events. Please try again.</p>
         <button onClick={fetchEvents} className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800">
           Retry
         </button>
