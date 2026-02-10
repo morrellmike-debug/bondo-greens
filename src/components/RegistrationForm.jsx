@@ -1,5 +1,26 @@
 import { useState, useEffect } from 'react';
 
+const SHIRT_SIZES = {
+  adult: [
+    { value: 'S', label: 'Small' },
+    { value: 'M', label: 'Medium' },
+    { value: 'L', label: 'Large' },
+    { value: 'XL', label: 'XL' },
+    { value: 'XXL', label: '2XL' },
+  ],
+  child: [
+    { value: 'YS', label: 'Youth Small' },
+    { value: 'YM', label: 'Youth Medium' },
+    { value: 'YL', label: 'Youth Large' },
+  ],
+  toddler: [
+    { value: '2T', label: '2T' },
+    { value: '3T', label: '3T' },
+    { value: '4T', label: '4T' },
+  ],
+  infant: [],
+};
+
 export default function RegistrationForm() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -22,6 +43,7 @@ export default function RegistrationForm() {
   });
   const [validationErrors, setValidationErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [guestOwner, setGuestOwner] = useState('registrant');
   const [showEventButtons, setShowEventButtons] = useState(true);
   const [showPartnerDecision, setShowPartnerDecision] = useState(false);
@@ -47,6 +69,8 @@ export default function RegistrationForm() {
     return total;
   };
 
+  const totalMeals = formData.registrantGuests.length + formData.partnerGuests.length;
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === 'phone' || name === 'partnerPhone') {
@@ -65,11 +89,11 @@ export default function RegistrationForm() {
 
   const handleBlur = (e) => {
     const { name, value } = e.target;
-    if (name === 'email' && value && !validateEmail(value)) {
-      setValidationErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+    if ((name === 'email' || name === 'partnerEmail') && value && !validateEmail(value)) {
+      setValidationErrors(prev => ({ ...prev, [name]: 'Please enter a valid email address' }));
     }
-    if (name === 'phone' && value && !validatePhone(value)) {
-      setValidationErrors(prev => ({ ...prev, phone: 'Please enter a valid 10-digit phone number' }));
+    if ((name === 'phone' || name === 'partnerPhone') && value && !validatePhone(value)) {
+      setValidationErrors(prev => ({ ...prev, [name]: 'Please enter a valid 10-digit phone number' }));
     }
   };
 
@@ -77,7 +101,13 @@ export default function RegistrationForm() {
     const fieldName = owner === 'registrant' ? 'registrantGuests' : 'partnerGuests';
     setFormData(prev => ({
       ...prev,
-      [fieldName]: prev[fieldName].map((g, i) => i === idx ? { ...g, [field]: value } : g)
+      [fieldName]: prev[fieldName].map((g, i) => {
+        if (i !== idx) return g;
+        const updated = { ...g, [field]: value };
+        // Reset shirt size when category changes (sizes differ per category)
+        if (field === 'category') updated.shirtSize = '';
+        return updated;
+      })
     }));
   };
 
@@ -99,17 +129,25 @@ export default function RegistrationForm() {
 
   const handleSubmit = async () => {
     setLoading(true);
+    setSubmitError('');
     try {
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, totalDue: calculateTotalDue() }),
       });
-      if (!res.ok) throw new Error();
-      alert('✓ Registration submitted! Check your email.');
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'Server returned an error. Please try again.');
+      }
+      alert('Registration submitted! Check your email for confirmation.');
       window.location.reload();
-    } catch {
-      alert('❌ Submission failed. Please try again.');
+    } catch (err) {
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        setSubmitError('Could not reach the server. Please check your connection and try again.');
+      } else {
+        setSubmitError(err.message || 'Submission failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -117,6 +155,27 @@ export default function RegistrationForm() {
 
   const canProceedStep1 = () => {
     return formData.firstName && formData.lastName && validateEmail(formData.email) && validatePhone(formData.phone) && formData.shirtSize;
+  };
+
+  // Helper to render a validated input field
+  const renderField = (name, label, placeholder, options = {}) => {
+    const hasError = !!validationErrors[name];
+    return (
+      <div className="space-y-1">
+        <label className={`text-[10px] font-black uppercase ${hasError ? 'text-red-500' : 'text-slate-400'}`}>{label}</label>
+        <input
+          name={name}
+          value={options.value !== undefined ? options.value : formData[name]}
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          className={`w-full p-4 rounded-xl border-2 transition-colors ${hasError ? 'border-red-500 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white'}`}
+          placeholder={placeholder}
+        />
+        {hasError && (
+          <p className="text-red-500 text-xs font-bold mt-1">{validationErrors[name]}</p>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -134,26 +193,18 @@ export default function RegistrationForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase text-slate-400">First Name *</label>
-              <input name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Ex: Mike" />
+              <input name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" placeholder="Ex: Mike" />
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase text-slate-400">Last Name *</label>
-              <input name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Ex: Morrell" />
+              <input name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" placeholder="Ex: Morrell" />
             </div>
           </div>
-          <div className="space-y-1">
-            <label className={`text-[10px] font-black uppercase ${validationErrors.email ? 'text-red-500' : 'text-slate-400'}`}>Email Address *</label>
-            <input name="email" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} data-error={validationErrors.email ? true : undefined} className={`w-full p-4 rounded-xl border-2 dark:text-white transition-colors ${validationErrors.email ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700 dark:bg-slate-800'}`} placeholder="mike@example.com" />
-            {validationErrors.email && <p className="text-red-500 text-xs font-bold mt-1">{validationErrors.email}</p>}
-          </div>
-          <div className="space-y-1">
-            <label className={`text-[10px] font-black uppercase ${validationErrors.phone ? 'text-red-500' : 'text-slate-400'}`}>Mobile Phone * (10 Digits)</label>
-            <input name="phone" value={formData.phone} onChange={handleInputChange} onBlur={handleBlur} data-error={validationErrors.phone ? true : undefined} className={`w-full p-4 rounded-xl border-2 dark:text-white transition-colors ${validationErrors.phone ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700 dark:bg-slate-800'}`} placeholder="5551234567" />
-            {validationErrors.phone && <p className="text-red-500 text-xs font-bold mt-1">{validationErrors.phone}</p>}
-          </div>
+          {renderField('email', 'Email Address *', 'mike@example.com')}
+          {renderField('phone', 'Mobile Phone * (10 Digits)', '5551234567')}
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size *</label>
-            <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+            <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
               <option value="">Select Size...</option>
               <option value="S">Small</option><option value="M">Medium</option><option value="L">Large</option><option value="XL">XL</option><option value="XXL">2XL</option>
             </select>
@@ -162,7 +213,7 @@ export default function RegistrationForm() {
             <p className="text-[10px] font-black uppercase mb-2 text-blue-700 dark:text-blue-400 tracking-widest">Optional Donation (Jeffersons)</p>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
-              <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className="w-full p-4 pl-8 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0" />
+              <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className="w-full p-4 pl-8 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" placeholder="0" />
             </div>
           </div>
           <button onClick={() => setStep(2)} disabled={!canProceedStep1()} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg shadow-green-200 dark:shadow-none disabled:opacity-30">Continue</button>
@@ -197,21 +248,19 @@ export default function RegistrationForm() {
             <div className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Partner Name *</label>
-                <input name="partnerName" value={formData.partnerName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Partner's Name" />
+                <input name="partnerName" value={formData.partnerName} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" placeholder="Partner's Name" />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400">Partner Email *</label>
-                <input name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="partner@email.com" />
-              </div>
+              {renderField('partnerEmail', 'Partner Email *', 'partner@email.com')}
+              {renderField('partnerPhone', 'Partner Phone * (10 Digits)', '5551234567')}
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Partner Event *</label>
-                <select name="partnerEventType" value={formData.partnerEventType} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                <select name="partnerEventType" value={formData.partnerEventType} onChange={handleInputChange} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
                   <option value="">Select Event...</option>
                   <option value="saturday">Saturday Only ($50)</option>
                   <option value="both">Both Days ($50)</option>
                 </select>
               </div>
-              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !formData.partnerEmail || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
+              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !validateEmail(formData.partnerEmail) || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
             </div>
           )}
           <button onClick={() => {setStep(1); setShowEventButtons(true); setShowPartnerDecision(false);}} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest mt-4">← Back to Profile</button>
@@ -225,22 +274,33 @@ export default function RegistrationForm() {
             <button onClick={() => setGuestOwner('registrant')} className={`flex-1 py-3 rounded-lg font-black uppercase text-[10px] transition-all ${guestOwner==='registrant'?'bg-white dark:bg-slate-700 text-green-600 shadow-sm':'text-slate-400'}`}>{formData.firstName || 'My'} Guests</button>
             {formData.partnerName && <button onClick={() => setGuestOwner('partner')} className={`flex-1 py-3 rounded-lg font-black uppercase text-[10px] transition-all ${guestOwner==='partner'?'bg-white dark:bg-slate-700 text-green-600 shadow-sm':'text-slate-400'}`}>{formData.partnerName}'s Guests</button>}
           </div>
-          
+
           <div className="space-y-4">
             {(guestOwner === 'registrant' ? formData.registrantGuests : formData.partnerGuests).map((g, idx) => (
               <div key={idx} className="p-5 border dark:border-slate-800 rounded-2xl relative bg-slate-50 dark:bg-slate-800/30">
                 <button onClick={() => removeGuest(guestOwner, idx)} className="absolute top-4 right-4 text-red-400 font-bold">REMOVE</button>
                 <div className="grid grid-cols-1 gap-4 mt-2">
-                  <input placeholder="Guest Name" value={g.name} onChange={(e) => handleGuestChange(guestOwner, idx, 'name', e.target.value)} className="w-full p-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-                  <select value={g.category} onChange={(e) => handleGuestChange(guestOwner, idx, 'category', e.target.value)} className="w-full p-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                  <input placeholder="Guest Name" value={g.name} onChange={(e) => handleGuestChange(guestOwner, idx, 'name', e.target.value)} className="w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white" />
+                  <select value={g.category} onChange={(e) => handleGuestChange(guestOwner, idx, 'category', e.target.value)} className="w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
                     <option value="adult">Adult</option><option value="child">Child</option><option value="toddler">Toddler</option><option value="infant">Infant</option>
                   </select>
+                  {SHIRT_SIZES[g.category]?.length > 0 && (
+                    <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className="w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
+                      <option value="">Select Shirt Size...</option>
+                      {SHIRT_SIZES[g.category].map(s => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
+                  )}
+                  {g.category === 'infant' && (
+                    <p className="text-xs text-slate-400 italic">No shirt for infants</p>
+                  )}
                 </div>
               </div>
             ))}
             <button onClick={() => addGuest(guestOwner)} className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl text-slate-400 font-black uppercase text-xs hover:bg-slate-50 dark:hover:bg-slate-800/50">+ Add Dinner Guest</button>
           </div>
-          
+
           <button onClick={() => setStep(4)} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg shadow-green-100 dark:shadow-none">Review Order</button>
           <button onClick={() => setStep(2)} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest">← Back</button>
         </div>
@@ -289,6 +349,11 @@ export default function RegistrationForm() {
               <span className="text-green-600">${calculateTotalDue()}</span>
             </div>
           </div>
+          {submitError && (
+            <div className="p-4 rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30">
+              <p className="text-red-600 dark:text-red-400 font-semibold text-sm">{submitError}</p>
+            </div>
+          )}
           <button onClick={handleSubmit} disabled={loading} className="w-full py-6 bg-green-600 text-white rounded-3xl font-black uppercase text-xl shadow-2xl shadow-green-200 dark:shadow-none hover:bg-green-700 active:scale-95 transition-all">{loading ? 'Processing...' : 'Complete Registration'}</button>
           <button onClick={() => setStep(3)} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">← Back</button>
         </div>
