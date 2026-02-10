@@ -21,8 +21,13 @@ export default async function handler(req, res) {
       .eq('email', email.toLowerCase())
       .single();
 
-    if (error || !admin) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    if (error) {
+      console.error('Admin lookup error:', JSON.stringify(error));
+      return res.status(401).json({ error: `Login failed: ${error.message || error.code || 'user lookup error'}` });
+    }
+
+    if (!admin) {
+      return res.status(401).json({ error: 'No account found for that email' });
     }
 
     if (!admin.active) {
@@ -31,7 +36,7 @@ export default async function handler(req, res) {
 
     const passwordMatch = await bcrypt.compare(password, admin.password_hash);
     if (!passwordMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Incorrect password' });
     }
 
     const token = await signToken({ id: admin.id, email: admin.email, role: admin.role });
