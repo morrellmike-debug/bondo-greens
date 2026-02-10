@@ -1,5 +1,38 @@
 import { useState, useEffect } from 'react';
 
+const SHIRT_SIZES = {
+  adult: [
+    { value: 'S', label: 'Small' },
+    { value: 'M', label: 'Medium' },
+    { value: 'L', label: 'Large' },
+    { value: 'XL', label: 'XL' },
+    { value: 'XXL', label: '2XL' },
+  ],
+  child: [
+    { value: 'YS', label: 'Youth Small' },
+    { value: 'YM', label: 'Youth Medium' },
+    { value: 'YL', label: 'Youth Large' },
+  ],
+  toddler: [
+    { value: '2T', label: '2T' },
+    { value: '3T', label: '3T' },
+    { value: '4T', label: '4T' },
+  ],
+  infant: [
+    { value: '6M', label: '6 Months' },
+    { value: '12M', label: '12 Months' },
+    { value: '18M', label: '18 Months' },
+    { value: '24M', label: '24 Months' },
+  ],
+};
+
+const INPUT_BASE = 'w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400';
+const INPUT_ERROR = 'w-full p-4 rounded-xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 text-red-900 dark:text-red-200 placeholder-red-300';
+const INPUT_SM = 'w-full p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white';
+const SELECT_BASE = 'w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white';
+const LABEL_BASE = 'text-[10px] font-black uppercase text-slate-400';
+const LABEL_ERROR = 'text-[10px] font-black uppercase text-red-500';
+
 export default function RegistrationForm() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -22,8 +55,8 @@ export default function RegistrationForm() {
   });
   const [validationErrors, setValidationErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);    // string | null
-  const [submitSuccess, setSubmitSuccess] = useState(null); // { emailSent: boolean } | null
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(null);
   const [guestOwner, setGuestOwner] = useState('registrant');
   const [showEventButtons, setShowEventButtons] = useState(true);
   const [showPartnerDecision, setShowPartnerDecision] = useState(false);
@@ -49,21 +82,44 @@ export default function RegistrationForm() {
     return total;
   };
 
+  const totalMeals = formData.registrantGuests.length + formData.partnerGuests.length;
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === 'phone' || name === 'partnerPhone') {
       const digits = value.replace(/\D/g, '').slice(0, 10);
       setFormData(prev => ({ ...prev, [name]: digits }));
+      if (validationErrors[name]) {
+        setValidationErrors(prev => ({ ...prev, [name]: '' }));
+      }
       return;
     }
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    if ((name === 'email' || name === 'partnerEmail') && value && !validateEmail(value)) {
+      setValidationErrors(prev => ({ ...prev, [name]: 'Please enter a valid email address' }));
+    }
+    if ((name === 'phone' || name === 'partnerPhone') && value && !validatePhone(value)) {
+      setValidationErrors(prev => ({ ...prev, [name]: 'Please enter a valid 10-digit phone number' }));
+    }
   };
 
   const handleGuestChange = (owner, idx, field, value) => {
     const fieldName = owner === 'registrant' ? 'registrantGuests' : 'partnerGuests';
     setFormData(prev => ({
       ...prev,
-      [fieldName]: prev[fieldName].map((g, i) => i === idx ? { ...g, [field]: value } : g)
+      [fieldName]: prev[fieldName].map((g, i) => {
+        if (i !== idx) return g;
+        const updated = { ...g, [field]: value };
+        if (field === 'category') updated.shirtSize = '';
+        return updated;
+      })
     }));
   };
 
@@ -96,14 +152,18 @@ export default function RegistrationForm() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setSubmitError(data.message || 'Submission failed. Please try again.');
+        setSubmitError(data.error || data.message || 'Submission failed. Please try again.');
         return;
       }
 
       setSubmitSuccess({ emailSent: data.emailSent });
       setStep(5);
-    } catch {
-      setSubmitError('Could not reach the server. Please check your connection and try again.');
+    } catch (err) {
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        setSubmitError('Could not reach the server. Please check your connection and try again.');
+      } else {
+        setSubmitError(err.message || 'Submission failed. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -113,7 +173,40 @@ export default function RegistrationForm() {
     return formData.firstName && formData.lastName && validateEmail(formData.email) && validatePhone(formData.phone) && formData.shirtSize;
   };
 
-  const totalMeals = formData.registrantGuests.length + formData.partnerGuests.length;
+  const renderField = (name, label, placeholder) => {
+    const hasError = !!validationErrors[name];
+    return (
+      <div className="space-y-1">
+        <label className={hasError ? LABEL_ERROR : LABEL_BASE}>{label}</label>
+        <input
+          name={name}
+          value={formData[name]}
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          className={hasError ? INPUT_ERROR : INPUT_BASE}
+          placeholder={placeholder}
+        />
+        {hasError && (
+          <p className="text-red-500 text-xs font-bold mt-1">{validationErrors[name]}</p>
+        )}
+      </div>
+    );
+  };
+
+  const renderGuestList = (guests, ownerName) => {
+    if (guests.length === 0) return null;
+    return (
+      <div className="mt-3 space-y-1">
+        <p className="text-[10px] font-black uppercase text-slate-400">{ownerName}'s Guests</p>
+        {guests.map((g, i) => (
+          <div key={i} className="flex justify-between text-xs text-slate-500 dark:text-slate-400 pl-2">
+            <span>{g.name || 'Unnamed'} ({g.category})</span>
+            <span>{g.shirtSize || '—'}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-4 dark:text-white transition-colors pb-20">
@@ -129,25 +222,19 @@ export default function RegistrationForm() {
           <h2 className="text-2xl font-black uppercase italic tracking-tight dark:text-white">Step 1: Your Profile</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400">First Name *</label>
-              <input name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Ex: Payne" />
+              <label className={LABEL_BASE}>First Name *</label>
+              <input name="firstName" value={formData.firstName} onChange={handleInputChange} className={INPUT_BASE} placeholder="Ex: Mike" />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400">Last Name *</label>
-              <input name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Ex: Stewart" />
+              <label className={LABEL_BASE}>Last Name *</label>
+              <input name="lastName" value={formData.lastName} onChange={handleInputChange} className={INPUT_BASE} placeholder="Ex: Morrell" />
             </div>
           </div>
+          {renderField('email', 'Email Address *', 'mike@example.com')}
+          {renderField('phone', 'Mobile Phone * (10 Digits)', '5551234567')}
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400">Email Address *</label>
-            <input name="email" value={formData.email} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="mike@example.com" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400">Mobile Phone * (10 Digits)</label>
-            <input name="phone" value={formData.phone} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="5551234567" />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400">Shirt Size *</label>
-            <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+            <label className={LABEL_BASE}>Shirt Size *</label>
+            <select name="shirtSize" value={formData.shirtSize} onChange={handleInputChange} className={SELECT_BASE}>
               <option value="">Select Size...</option>
               <option value="S">Small</option><option value="M">Medium</option><option value="L">Large</option><option value="XL">XL</option><option value="XXL">2XL</option>
             </select>
@@ -156,7 +243,7 @@ export default function RegistrationForm() {
             <p className="text-[10px] font-black uppercase mb-2 text-blue-700 dark:text-blue-400 tracking-widest">Optional Donation (Jeffersons)</p>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
-              <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className="w-full p-4 pl-8 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0" />
+              <input type="number" name="registrantDonation" value={formData.registrantDonation} onChange={handleInputChange} className={INPUT_BASE + ' pl-8'} placeholder="0" />
             </div>
           </div>
           <button onClick={() => setStep(2)} disabled={!canProceedStep1()} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg shadow-green-200 dark:shadow-none disabled:opacity-30">Continue</button>
@@ -184,28 +271,26 @@ export default function RegistrationForm() {
           ) : showPartnerDecision ? (
             <div className="space-y-3">
               <h3 className="font-black text-slate-900 dark:text-white uppercase text-sm mb-4">2-Man Scramble Partner</h3>
-              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'partner'})); setShowPartnerDecision(false); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black text-slate-900 dark:text-white dark:border-slate-800 hover:border-green-600 transition-all cursor-pointer">I Have a Partner</button>
-              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'assign'})); setStep(3); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black text-slate-900 dark:text-white dark:border-slate-800 hover:border-green-600 transition-all cursor-pointer">Assign Me a Partner</button>
+              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'partner'})); setShowPartnerDecision(false); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black hover:border-green-600 dark:border-slate-700 dark:text-white">I Have a Partner</button>
+              <button onClick={() => { setFormData(p => ({...p, partnerSelection: 'assign'})); setStep(3); }} className="w-full p-6 text-left border-2 rounded-2xl uppercase font-black hover:border-green-600 dark:border-slate-700 dark:text-white">Assign me a partner</button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400">Partner Name *</label>
-                <input name="partnerName" value={formData.partnerName} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Partner's Name" />
+                <label className={LABEL_BASE}>Partner Name *</label>
+                <input name="partnerName" value={formData.partnerName} onChange={handleInputChange} className={INPUT_BASE} placeholder="Partner's Name" />
               </div>
+              {renderField('partnerEmail', 'Partner Email *', 'partner@email.com')}
+              {renderField('partnerPhone', 'Partner Phone * (10 Digits)', '5551234567')}
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400">Partner Email *</label>
-                <input name="partnerEmail" value={formData.partnerEmail} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="partner@email.com" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400">Partner Event *</label>
-                <select name="partnerEventType" value={formData.partnerEventType} onChange={handleInputChange} className="w-full p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                <label className={LABEL_BASE}>Partner Event *</label>
+                <select name="partnerEventType" value={formData.partnerEventType} onChange={handleInputChange} className={SELECT_BASE}>
                   <option value="">Select Event...</option>
                   <option value="saturday">Saturday Only ($50)</option>
                   <option value="both">Both Days ($50)</option>
                 </select>
               </div>
-              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !formData.partnerEmail || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
+              <button onClick={() => setStep(3)} disabled={!formData.partnerName || !validateEmail(formData.partnerEmail) || !validatePhone(formData.partnerPhone) || !formData.partnerEventType} className="w-full py-5 bg-green-600 text-white rounded-2xl font-black uppercase shadow-lg disabled:opacity-30">Next Step</button>
             </div>
           )}
           <button onClick={() => {setStep(1); setShowEventButtons(true); setShowPartnerDecision(false);}} className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest mt-4">← Back to Profile</button>
@@ -222,12 +307,18 @@ export default function RegistrationForm() {
 
           <div className="space-y-4">
             {(guestOwner === 'registrant' ? formData.registrantGuests : formData.partnerGuests).map((g, idx) => (
-              <div key={idx} className="p-5 border dark:border-slate-800 rounded-2xl relative bg-slate-50 dark:bg-slate-800/30">
+              <div key={idx} className="p-5 border-2 border-slate-200 dark:border-slate-800 rounded-2xl relative bg-slate-50 dark:bg-slate-800/30">
                 <button onClick={() => removeGuest(guestOwner, idx)} className="absolute top-4 right-4 text-red-400 font-bold">REMOVE</button>
                 <div className="grid grid-cols-1 gap-4 mt-2">
-                  <input placeholder="Guest Name" value={g.name} onChange={(e) => handleGuestChange(guestOwner, idx, 'name', e.target.value)} className="w-full p-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-                  <select value={g.category} onChange={(e) => handleGuestChange(guestOwner, idx, 'category', e.target.value)} className="w-full p-3 rounded-lg border dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                  <input placeholder="Guest Name" value={g.name} onChange={(e) => handleGuestChange(guestOwner, idx, 'name', e.target.value)} className={INPUT_SM} />
+                  <select value={g.category} onChange={(e) => handleGuestChange(guestOwner, idx, 'category', e.target.value)} className={INPUT_SM}>
                     <option value="adult">Adult</option><option value="child">Child</option><option value="toddler">Toddler</option><option value="infant">Infant</option>
+                  </select>
+                  <select value={g.shirtSize} onChange={(e) => handleGuestChange(guestOwner, idx, 'shirtSize', e.target.value)} className={INPUT_SM}>
+                    <option value="">Select Shirt Size...</option>
+                    {SHIRT_SIZES[g.category].map(s => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -244,6 +335,7 @@ export default function RegistrationForm() {
         <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl shadow-xl space-y-6">
           <h2 className="text-2xl font-black uppercase italic tracking-tight dark:text-white">Step 4: Final Summary</h2>
           <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border dark:border-slate-800 space-y-6">
+            {/* Registrant */}
             <div className="space-y-2">
               <div className="flex justify-between font-black text-slate-900 dark:text-white uppercase text-sm">
                 <span>{formData.firstName} {formData.lastName}</span>
@@ -254,8 +346,10 @@ export default function RegistrationForm() {
                 <span>• SHIRT: {formData.shirtSize}</span>
                 {parseInt(formData.registrantDonation) > 0 && <span className="text-blue-500">• DONATION: ${formData.registrantDonation}</span>}
               </div>
+              {renderGuestList(formData.registrantGuests, formData.firstName)}
             </div>
 
+            {/* Partner */}
             {formData.partnerName && (
               <div className="space-y-2 border-t dark:border-slate-700 pt-4">
                 <div className="flex justify-between font-black text-slate-900 dark:text-white uppercase text-sm">
@@ -266,18 +360,11 @@ export default function RegistrationForm() {
                   <span>{formData.partnerEventType}</span>
                   {parseInt(formData.partnerDonation) > 0 && <span className="text-blue-500">• DONATION: ${formData.partnerDonation}</span>}
                 </div>
+                {renderGuestList(formData.partnerGuests, formData.partnerName)}
               </div>
             )}
 
-            {totalMeals > 0 && (
-              <div className="border-t dark:border-slate-700 pt-4">
-                <div className="flex justify-between font-black text-slate-900 dark:text-white uppercase text-sm">
-                  <span>Dinner Guests ({totalMeals})</span>
-                  <span className="text-slate-400">FREE</span>
-                </div>
-              </div>
-            )}
-
+            {/* Total */}
             <div className="flex justify-between font-black text-2xl border-t-2 border-slate-900 dark:border-white pt-6">
               <span className="tracking-tighter">TOTAL</span>
               <span className="text-green-600">${calculateTotalDue()}</span>
@@ -295,11 +382,8 @@ export default function RegistrationForm() {
 
       {step === 5 && submitSuccess && (
         <div className="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl shadow-xl space-y-6 text-center">
-          <div className="w-20 h-20 mx-auto bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-4xl">
-            &#10003;
-          </div>
+          <div className="w-20 h-20 mx-auto bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-4xl">&#10003;</div>
           <h2 className="text-2xl font-black uppercase italic tracking-tight dark:text-white">You're Registered!</h2>
-
           {submitSuccess.emailSent ? (
             <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl text-sm text-green-700 dark:text-green-400">
               Registration complete! A confirmation email has been sent to your inbox.
@@ -309,7 +393,6 @@ export default function RegistrationForm() {
               Registration complete! We had trouble sending the confirmation email. If you do not receive it, please contact us.
             </div>
           )}
-
           <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border dark:border-slate-800 text-left space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-slate-500 dark:text-slate-400">Name</span>
@@ -328,7 +411,6 @@ export default function RegistrationForm() {
               <span className="font-black text-green-600 text-lg">${calculateTotalDue()}</span>
             </div>
           </div>
-
           <button onClick={() => window.location.reload()} className="w-full py-5 border-2 border-green-600 text-green-600 rounded-2xl font-black uppercase hover:bg-green-50 dark:hover:bg-green-900/20 transition-all">Register Another Person</button>
         </div>
       )}
