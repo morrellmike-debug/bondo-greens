@@ -38,8 +38,11 @@ export default async function handler(req, res) {
   // Server-side validation
   const errors = validatePayload(formData);
   if (errors.length > 0) {
-    return res.status(400).json({ error: errors.join('; ') });
+    return res.status(400).json({ success: false, error: errors.join('; ') });
   }
+
+  // Format phone as digits only
+  const cleanPhone = (phone || '').replace(/\D/g, '');
 
   try {
     // 1. Save to Supabase — fail the request if this fails
@@ -49,7 +52,7 @@ export default async function handler(req, res) {
         first_name: firstName,
         last_name: lastName,
         email,
-        phone,
+        phone: cleanPhone,
         shirt_size: shirtSize,
         event_type: eventType,
         total_due: totalDue,
@@ -57,8 +60,8 @@ export default async function handler(req, res) {
       }]);
 
     if (dbError) {
-      console.error('Supabase error:', dbError);
-      return res.status(500).json({ error: 'Failed to save registration. Please try again.' });
+      console.error('Supabase error:', JSON.stringify(dbError));
+      return res.status(500).json({ success: false, error: `Registration failed: ${dbError.message || 'database error'}` });
     }
 
     // 2. Send confirmation email via Resend (best-effort — don't fail registration if email fails)
@@ -97,6 +100,6 @@ export default async function handler(req, res) {
     return res.status(201).json({ success: true, emailSent });
   } catch (err) {
     console.error('System error:', err);
-    return res.status(500).json({ error: 'Internal server error. Please try again.' });
+    return res.status(500).json({ success: false, error: `Server error: ${err.message || 'unknown'}` });
   }
 }
