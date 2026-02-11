@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/register", "destination": "/api/register.js" },
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/((?!api/).*)", "destination": "/" }
   ]
 }
