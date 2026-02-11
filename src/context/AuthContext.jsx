@@ -6,6 +6,7 @@ export function AuthProvider({ children }) {
   const [adminUser, setAdminUser] = useState(null); // { id, email, role }
   const [adminToken, setAdminToken] = useState(null);
   const [adminLoading, setAdminLoading] = useState(true); // true while checking stored token
+  const [mustChangePassword, setMustChangePassword] = useState(false);
   const [devPassword, setDevPassword] = useState('');
   const [isDevAuthenticated, setIsDevAuthenticated] = useState(false);
 
@@ -75,13 +76,17 @@ export function AuthProvider({ children }) {
 
     setAdminToken(data.token);
     setAdminUser(data.admin);
+    setMustChangePassword(!!data.must_change_password);
     sessionStorage.setItem('adminToken', data.token);
-    return data.admin;
+    return data;
   };
+
+  const clearMustChangePassword = () => setMustChangePassword(false);
 
   const logoutAdmin = () => {
     setAdminToken(null);
     setAdminUser(null);
+    setMustChangePassword(false);
     sessionStorage.removeItem('adminToken');
   };
 
@@ -101,6 +106,8 @@ export function AuthProvider({ children }) {
         adminUser,
         adminToken,
         adminLoading,
+        mustChangePassword,
+        clearMustChangePassword,
         isDevAuthenticated,
         authenticateDev,
         loginAdmin,

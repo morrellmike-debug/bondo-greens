@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
     const { data: admin, error } = await supabase
       .from('admin_users')
-      .select('id, email, password_hash, role, active')
+      .select('id, email, password_hash, role, active, must_change_password')
       .eq('email', email.toLowerCase())
       .single();
 
@@ -44,6 +44,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       token,
       admin: { id: admin.id, email: admin.email, role: admin.role },
+      must_change_password: !!admin.must_change_password,
     });
   } catch (err) {
     console.error('Login error:', err);
