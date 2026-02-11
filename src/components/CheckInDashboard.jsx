@@ -29,11 +29,11 @@ export default function CheckInDashboard({ eventId, onCheckInChange }) {
   const handleCheckIn = async (regId, isCurrentlyCheckedIn) => {
     setCheckingIn(prev => ({ ...prev, [regId]: true }));
     try {
-      const endpoint = isCurrentlyCheckedIn
-        ? `/api/registrations/${eventId}/${regId}/undo-checkin`
-        : `/api/registrations/${eventId}/${regId}/checkin`;
-
-      const res = await fetch(endpoint, { method: 'POST' });
+      const res = await fetch(`/api/registrations/${eventId}/${regId}/checkin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(isCurrentlyCheckedIn ? { undo: true } : {}),
+      });
       if (!res.ok) throw new Error('Check-in failed');
 
       // Optimistic update

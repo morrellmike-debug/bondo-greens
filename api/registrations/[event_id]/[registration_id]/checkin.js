@@ -6,13 +6,18 @@ export default async function handler(req, res) {
   }
 
   const { event_id, registration_id } = req.query;
+  const { undo } = req.body || {};
 
   try {
     const supabase = getSupabase();
 
+    const updateData = undo
+      ? { checked_in: false, checked_in_at: null }
+      : { checked_in: true, checked_in_at: new Date().toISOString() };
+
     const { data, error } = await supabase
       .from('registrations')
-      .update({ checked_in: true, checked_in_at: new Date().toISOString() })
+      .update(updateData)
       .eq('id', registration_id)
       .eq('event_id', event_id)
       .select()
@@ -20,12 +25,12 @@ export default async function handler(req, res) {
 
     if (error) {
       console.error('Check-in error:', error);
-      return res.status(500).json({ error: 'Check-in failed' });
+      return res.status(500).json({ error: undo ? 'Undo check-in failed' : 'Check-in failed' });
     }
 
     return res.status(200).json({ success: true, registration: data });
   } catch (err) {
     console.error('Check-in error:', err);
-    return res.status(500).json({ error: 'Check-in failed' });
+    return res.status(500).json({ error: undo ? 'Undo check-in failed' : 'Check-in failed' });
   }
 }
