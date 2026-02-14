@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { getSupabase, getSupabaseAdmin } from '../_lib/supabase.js';
+import { getSupabaseAdmin } from '../_lib/supabase.js';
 import { signToken, requireAdmin } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const supabase = getSupabase();
+      const supabase = getSupabaseAdmin();
       const { data: admin, error } = await supabase
         .from('admin_users')
         .select('id, email, password_hash, role, active, must_change_password')
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     if (!adminPayload) return res.status(401).json({ error: 'Unauthorized' });
 
     try {
-      const supabase = getSupabase();
+      const supabase = getSupabaseAdmin();
       const { data: admin, error } = await supabase
         .from('admin_users')
         .select('id, email, role, active')
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const supabase = getSupabase();
+      const supabase = getSupabaseAdmin();
 
       const { data: user, error: fetchErr } = await supabase
         .from('admin_users')
