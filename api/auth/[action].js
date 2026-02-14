@@ -20,17 +20,17 @@ export default async function handler(req, res) {
         .from('admin_users')
         .select('id, email, password_hash, role, active, must_change_password')
         .eq('email', email.toLowerCase())
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Admin lookup error:', JSON.stringify(error));
-        return res.status(401).json({ error: `Login failed: ${error.message || error.code || 'user lookup error'}` });
+        return res.status(401).json({ error: 'Invalid email or password' });
       }
-      if (!admin) return res.status(401).json({ error: 'No account found for that email' });
-      if (!admin.active) return res.status(401).json({ error: 'Account is disabled' });
+      if (!admin) return res.status(401).json({ error: 'Invalid email or password' });
+      if (!admin.active) return res.status(401).json({ error: 'Invalid email or password' });
 
       const passwordMatch = await bcrypt.compare(password, admin.password_hash);
-      if (!passwordMatch) return res.status(401).json({ error: 'Incorrect password' });
+      if (!passwordMatch) return res.status(401).json({ error: 'Invalid email or password' });
 
       const token = await signToken({ id: admin.id, email: admin.email, role: admin.role });
 
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
       });
     } catch (err) {
       console.error('Login error:', err);
-      return res.status(500).json({ error: `Login error: ${err.message || String(err)}` });
+      return res.status(500).json({ error: 'An unexpected error occurred. Please try again.' });
     }
   }
 
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         .from('admin_users')
         .select('id, email, role, active')
         .eq('id', adminPayload.id)
-        .single();
+        .maybeSingle();
 
       if (error || !admin || !admin.active) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
         .from('admin_users')
         .select('id, password_hash, must_change_password')
         .eq('id', admin.id)
-        .single();
+        .maybeSingle();
 
       if (fetchErr || !user) return res.status(404).json({ error: 'User not found' });
 
