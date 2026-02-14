@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { getSupabase } from '../_lib/supabase.js';
+import { getSupabase, getSupabaseAdmin } from '../_lib/supabase.js';
 import { signToken, requireAdmin } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -138,7 +138,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const supabase = getSupabase();
+      const supabase = getSupabaseAdmin();
 
       const { data: admin, error: lookupErr } = await supabase
         .from('admin_users')
@@ -178,7 +178,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const supabase = getSupabase();
+      const supabase = getSupabaseAdmin();
 
       // Only allow setup if zero admin users exist
       const { count, error: countErr } = await supabase
