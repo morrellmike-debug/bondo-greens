@@ -7,6 +7,9 @@ export default function AdminGate({ children }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [setupMode, setSetupMode] = useState(false);
+  const [setupError, setSetupError] = useState('');
+  const [setupSubmitting, setSetupSubmitting] = useState(false);
 
   // Password change state
   const [newPassword, setNewPassword] = useState('');
@@ -114,6 +117,92 @@ export default function AdminGate({ children }) {
     return <>{children}</>;
   }
 
+  // Setup form — bootstrap first admin account
+  const handleSetup = async (e) => {
+    e.preventDefault();
+    setSetupError('');
+    if (password.length < 6) {
+      setSetupError('Password must be at least 6 characters');
+      return;
+    }
+    setSetupSubmitting(true);
+    try {
+      const res = await fetch('/api/auth/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Setup failed');
+      // Auto-login with the returned token
+      await loginAdmin(email, password);
+    } catch (err) {
+      setSetupError(err.message);
+    } finally {
+      setSetupSubmitting(false);
+    }
+  };
+
+  if (setupMode) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-xl border border-slate-100">
+        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
+          <span className="text-4xl">🛠️</span>
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Admin Setup</h2>
+        <p className="text-slate-500 font-medium mb-8 text-center max-w-sm px-6">
+          Create the first admin account to get started.
+        </p>
+
+        <form onSubmit={handleSetup} className="w-full max-w-sm px-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              placeholder="admin@bondogreens.com"
+              required
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              placeholder="At least 6 characters"
+              required
+            />
+          </div>
+
+          {setupError && (
+            <p className="text-red-600 text-sm text-center">{setupError}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={setupSubmitting}
+            className="w-full px-6 py-3 bg-green-700 text-white rounded-xl font-bold uppercase tracking-tight hover:bg-green-800 transition-all shadow-lg shadow-green-200 active:scale-95 disabled:opacity-50"
+          >
+            {setupSubmitting ? 'Creating account...' : 'Create Admin Account'}
+          </button>
+        </form>
+
+        <button
+          onClick={() => { setSetupMode(false); setSetupError(''); }}
+          className="mt-4 text-sm text-slate-500 hover:text-slate-700 underline"
+        >
+          Back to login
+        </button>
+      </div>
+    );
+  }
+
   // Login form
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -176,6 +265,13 @@ export default function AdminGate({ children }) {
           {submitting ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
+
+      <button
+        onClick={() => { setSetupMode(true); setError(''); }}
+        className="mt-4 text-sm text-slate-500 hover:text-slate-700 underline"
+      >
+        First time? Set up admin account
+      </button>
     </div>
   );
 }
