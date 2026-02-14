@@ -115,6 +115,59 @@ export default async function handler(req, res) {
     }
   }
 
+  // ── RESET PASSWORD (gated by ADMIN_RESET_TOKEN env var) ──
+  if (action === 'reset-password') {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+    const { email, new_password, reset_token } = req.body || {};
+
+    const serverToken = process.env.ADMIN_RESET_TOKEN;
+    if (!serverToken) {
+      return res.status(403).json({ error: 'Password reset is not configured. Set the ADMIN_RESET_TOKEN environment variable.' });
+    }
+
+    if (!reset_token || reset_token !== serverToken) {
+      return res.status(401).json({ error: 'Invalid reset token' });
+    }
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    if (!new_password || new_password.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+
+    try {
+      const supabase = getSupabase();
+
+      const { data: admin, error: lookupErr } = await supabase
+        .from('admin_users')
+        .select('id, email')
+        .eq('email', email.toLowerCase())
+        .maybeSingle();
+
+      if (lookupErr || !admin) {
+        return res.status(404).json({ error: 'No admin account found for that email' });
+      }
+
+      const password_hash = await bcrypt.hash(new_password, 10);
+      const { error: updateErr } = await supabase
+        .from('admin_users')
+        .update({ password_hash, must_change_password: false, active: true })
+        .eq('id', admin.id);
+
+      if (updateErr) {
+        console.error('Reset password update error:', updateErr);
+        return res.status(500).json({ error: 'Failed to reset password' });
+      }
+
+      return res.status(200).json({ success: true, message: 'Password has been reset. You can now log in.' });
+    } catch (err) {
+      console.error('Reset password error:', err);
+      return res.status(500).json({ error: 'Password reset failed' });
+    }
+  }
+
   // ── SETUP (bootstrap first admin — only works when no admins exist) ──
   if (action === 'setup') {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });

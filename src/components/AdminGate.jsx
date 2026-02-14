@@ -10,6 +10,12 @@ export default function AdminGate({ children }) {
   const [setupMode, setSetupMode] = useState(false);
   const [setupError, setSetupError] = useState('');
   const [setupSubmitting, setSetupSubmitting] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetToken, setResetToken] = useState('');
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState('');
+  const [resetSubmitting, setResetSubmitting] = useState(false);
 
   // Password change state
   const [newPassword, setNewPassword] = useState('');
@@ -115,6 +121,118 @@ export default function AdminGate({ children }) {
   // Authenticated — render admin content
   if (isAdmin) {
     return <>{children}</>;
+  }
+
+  // Reset password form
+  const handleReset = async (e) => {
+    e.preventDefault();
+    setResetError('');
+    setResetSuccess('');
+    if (resetNewPassword.length < 6) {
+      setResetError('Password must be at least 6 characters');
+      return;
+    }
+    setResetSubmitting(true);
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, new_password: resetNewPassword, reset_token: resetToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Reset failed');
+      setResetSuccess(data.message || 'Password has been reset. You can now log in.');
+    } catch (err) {
+      setResetError(err.message);
+    } finally {
+      setResetSubmitting(false);
+    }
+  };
+
+  if (resetMode) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-xl border border-slate-100">
+        <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-6">
+          <span className="text-4xl">🔓</span>
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Reset Password</h2>
+        <p className="text-slate-500 font-medium mb-8 text-center max-w-sm px-6">
+          Enter your email, the reset token, and a new password.
+        </p>
+
+        {resetSuccess ? (
+          <div className="w-full max-w-sm px-6 space-y-4">
+            <p className="text-green-700 text-sm text-center font-medium">{resetSuccess}</p>
+            <button
+              onClick={() => { setResetMode(false); setResetSuccess(''); setResetError(''); setResetToken(''); setResetNewPassword(''); }}
+              className="w-full px-6 py-3 bg-green-700 text-white rounded-xl font-bold uppercase tracking-tight hover:bg-green-800 transition-all shadow-lg shadow-green-200 active:scale-95"
+            >
+              Back to Login
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleReset} className="w-full max-w-sm px-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                placeholder="admin@bondogreens.com"
+                required
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Reset Token</label>
+              <input
+                type="text"
+                value={resetToken}
+                onChange={(e) => setResetToken(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                placeholder="From your environment config"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <input
+                type="password"
+                value={resetNewPassword}
+                onChange={(e) => setResetNewPassword(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                placeholder="At least 6 characters"
+                required
+              />
+            </div>
+
+            {resetError && (
+              <p className="text-red-600 text-sm text-center">{resetError}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={resetSubmitting}
+              className="w-full px-6 py-3 bg-green-700 text-white rounded-xl font-bold uppercase tracking-tight hover:bg-green-800 transition-all shadow-lg shadow-green-200 active:scale-95 disabled:opacity-50"
+            >
+              {resetSubmitting ? 'Resetting...' : 'Reset Password'}
+            </button>
+          </form>
+        )}
+
+        {!resetSuccess && (
+          <button
+            onClick={() => { setResetMode(false); setResetError(''); setResetToken(''); setResetNewPassword(''); }}
+            className="mt-4 text-sm text-slate-500 hover:text-slate-700 underline"
+          >
+            Back to login
+          </button>
+        )}
+      </div>
+    );
   }
 
   // Setup form — bootstrap first admin account
@@ -266,12 +384,20 @@ export default function AdminGate({ children }) {
         </button>
       </form>
 
-      <button
-        onClick={() => { setSetupMode(true); setError(''); }}
-        className="mt-4 text-sm text-slate-500 hover:text-slate-700 underline"
-      >
-        First time? Set up admin account
-      </button>
+      <div className="mt-4 flex gap-4">
+        <button
+          onClick={() => { setResetMode(true); setError(''); }}
+          className="text-sm text-slate-500 hover:text-slate-700 underline"
+        >
+          Forgot password?
+        </button>
+        <button
+          onClick={() => { setSetupMode(true); setError(''); }}
+          className="text-sm text-slate-500 hover:text-slate-700 underline"
+        >
+          First time setup
+        </button>
+      </div>
     </div>
   );
 }
